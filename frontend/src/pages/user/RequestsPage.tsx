@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { EmptyState } from '../../components/feedback/States';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { MOCK_REQUESTS, MOCK_DOCUMENTS } from '../../mocks/data';
+import { MOCK_REQUESTS, MOCK_DOCUMENTS, saveRequests } from '../../mocks/data';
 import { formatRelative } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import type { AccessRequest } from '../../types/permission';
@@ -39,6 +39,7 @@ export default function AccessRequestsPage() {
       status: 'pending',
     };
     MOCK_REQUESTS.push(req);
+    saveRequests();
     setRequests(MOCK_REQUESTS.filter(r => r.requester_id === user?.uid));
     setForm({ resource_id: '', permission: 'view', reason: '' });
     setShowNew(false);
@@ -46,7 +47,10 @@ export default function AccessRequestsPage() {
 
   function handleCancel(id: string) {
     const idx = MOCK_REQUESTS.findIndex(r => r.id === id);
-    if (idx > -1) MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'cancelled' };
+    if (idx > -1) {
+      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'cancelled' };
+      saveRequests();
+    }
     setRequests(MOCK_REQUESTS.filter(r => r.requester_id === user?.uid));
   }
 

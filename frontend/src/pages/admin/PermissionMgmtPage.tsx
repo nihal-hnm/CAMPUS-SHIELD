@@ -3,7 +3,7 @@ import { Plus, Search, Trash2, User, FileText, Edit2, X, ChevronDown, Shield } f
 import { Button } from '../../components/ui/Button';
 import { StatusBadge, ClassificationBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/feedback/States';
-import { MOCK_USERS, MOCK_DOCUMENTS, MOCK_PERMISSIONS } from '../../mocks/data';
+import { MOCK_USERS, MOCK_DOCUMENTS, MOCK_PERMISSIONS, savePermissions } from '../../mocks/data';
 import type { Permission, PermissionLevel } from '../../types/permission';
 import { formatDate, formatCountdown } from '../../utils/format';
 
@@ -173,11 +173,18 @@ export default function PermissionMgmtPage() {
   }, [permissions, search, filterUser, filterDoc, filterLevel]);
 
   function revoke(id: string) {
-    setPermissions(prev => prev.filter(p => p.id !== id));
+    const idx = MOCK_PERMISSIONS.findIndex(p => p.id === id);
+    if (idx > -1) {
+      MOCK_PERMISSIONS.splice(idx, 1);
+      savePermissions();
+    }
+    setPermissions([...MOCK_PERMISSIONS]);
   }
 
   function handleGrant(perm: Permission) {
-    setPermissions(prev => [perm, ...prev]);
+    MOCK_PERMISSIONS.unshift(perm);
+    savePermissions();
+    setPermissions([...MOCK_PERMISSIONS]);
   }
 
   // Group by user for the by-user tab

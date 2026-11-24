@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Shield, Users, GraduationCap, BookOpen, Edit, X, ChevronDown, Search } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_USERS, MOCK_DEPARTMENTS } from '../../mocks/data';
+import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers } from '../../mocks/data';
 import type { User } from '../../types/user';
 
 type TabKey = 'admins' | 'hods' | 'faculties';
@@ -50,6 +50,7 @@ export default function RoleManagementPage() {
     const idx = MOCK_USERS.findIndex(u => u.uid === editUser.uid);
     if (idx > -1) {
       MOCK_USERS[idx] = { ...MOCK_USERS[idx], role: newRole as any, special_tags: newRole === 'dept_admin' ? ['HOD'] : [] };
+      saveUsers();
     }
     setUsers([...MOCK_USERS]);
     setEditUser(null);

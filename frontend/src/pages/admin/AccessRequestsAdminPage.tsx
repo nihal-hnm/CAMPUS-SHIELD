@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_REQUESTS } from '../../mocks/data';
+import { MOCK_REQUESTS, saveRequests } from '../../mocks/data';
 import { formatRelative } from '../../utils/format';
 import type { AccessRequest } from '../../types/permission';
 import { CheckCircle, XCircle, Clock, Inbox } from 'lucide-react';
@@ -15,13 +15,19 @@ export default function AccessRequestsAdminPage() {
 
   function approve(id: string) {
     const idx = MOCK_REQUESTS.findIndex(r => r.id === id);
-    if (idx > -1) MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'approved' };
+    if (idx > -1) {
+      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'approved' };
+      saveRequests();
+    }
     setRequests([...MOCK_REQUESTS]);
   }
 
   function reject(id: string) {
     const idx = MOCK_REQUESTS.findIndex(r => r.id === id);
-    if (idx > -1) MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'rejected' };
+    if (idx > -1) {
+      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'rejected' };
+      saveRequests();
+    }
     setRequests([...MOCK_REQUESTS]);
   }
 

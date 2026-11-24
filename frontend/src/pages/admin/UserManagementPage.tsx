@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_USERS, MOCK_DEPARTMENTS, MOCK_CREDENTIALS } from '../../mocks/data';
+import { MOCK_USERS, MOCK_DEPARTMENTS, MOCK_CREDENTIALS, saveUsers, saveDepartments } from '../../mocks/data';
 import { formatRelative } from '../../utils/format';
 import type { User } from '../../types/user';
 
@@ -83,8 +83,30 @@ export default function UserManagementPage() {
     } as any;
     // Store credential for demo login
     MOCK_CREDENTIALS[form.email] = { password: form.password, uid };
-    // Update global mock array
+    // Update global mock array & persist
     MOCK_USERS.push(newUser);
+    saveUsers();
+
+    // Sync with department
+    const deptObj = MOCK_DEPARTMENTS.find(d => d.code === form.department);
+    if (deptObj) {
+      if (form.role === 'student') {
+        deptObj.students = [...(deptObj.students || []), {
+          uid, name: form.name, email: form.email, roll_no: rollNo, year: 1, status: 'active'
+        }];
+        deptObj.student_count = deptObj.students.length;
+      } else if (form.role === 'faculty') {
+        deptObj.faculties = [...(deptObj.faculties || []), {
+          uid, name: form.name, email: form.email, subject: form.subject || undefined, role: 'faculty'
+        }];
+        deptObj.faculty_count = deptObj.faculties.length;
+      } else if (form.role === 'dept_admin') {
+        deptObj.hod_id = uid;
+        deptObj.hod_name = form.name;
+      }
+      saveDepartments();
+    }
+
     setUsers([...MOCK_USERS]);
     setForm(EMPTY_FORM);
     setShowAdd(false);
@@ -92,14 +114,22 @@ export default function UserManagementPage() {
 
   function handleDelete(uid: string) {
     const idx = MOCK_USERS.findIndex(u => u.uid === uid);
-    if (idx > -1) MOCK_USERS.splice(idx, 1);
+    if (idx > -1) {
+      const removed = MOCK_USERS[idx];
+      delete MOCK_CREDENTIALS[removed.email];
+      MOCK_USERS.splice(idx, 1);
+      saveUsers();
+    }
     setUsers([...MOCK_USERS]);
   }
 
   function handleEditSave() {
     if (!editUser) return;
     const idx = MOCK_USERS.findIndex(u => u.uid === editUser.uid);
-    if (idx > -1) MOCK_USERS[idx] = editUser;
+    if (idx > -1) {
+      MOCK_USERS[idx] = editUser;
+      saveUsers();
+    }
     setUsers([...MOCK_USERS]);
     setEditUser(null);
   }

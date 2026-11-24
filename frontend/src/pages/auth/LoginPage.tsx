@@ -26,7 +26,8 @@ export default function LoginPage() {
     setEmailErr(''); setError(''); setLoading(true);
     try {
       await login(email, password);
-      navigate(returnUrl, { replace: true });
+      const target = returnUrl.startsWith('/documents/') ? returnUrl : '/';
+      navigate(target, { replace: true });
     } catch (err: any) {
       const code = err?.reason_code ?? 'INVALID_CREDENTIALS';
       setError(LOGIN_FAILURE_REASONS[code] ?? err?.message ?? 'Sign in failed. Try again.');

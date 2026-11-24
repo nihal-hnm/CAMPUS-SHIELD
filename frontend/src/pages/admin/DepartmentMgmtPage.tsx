@@ -5,11 +5,9 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { MOCK_DEPARTMENTS, MOCK_USERS, type Department, type Student } from '../../mocks/data';
+import { MOCK_DEPARTMENTS, MOCK_USERS, saveDepartments, type Department, type Student } from '../../mocks/data';
 
 type DeptTab = 'subjects' | 'students' | 'faculty';
-
-const STUDENT_STORE: Record<string, Student[]> = {};
 
 function genRoll(deptCode: string, existing: Student[]) {
   const year = new Date().getFullYear().toString().substring(2);
@@ -26,8 +24,12 @@ export default function DepartmentMgmtPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newDept, setNewDept] = useState({ name: '', code: '', subjects: '' });
 
-  // Student state per dept
-  const [students, setStudents] = useState<Record<string, Student[]>>(STUDENT_STORE);
+  // Student state per dept (initialized from persisted departments)
+  const [students, setStudents] = useState<Record<string, Student[]>>(() => {
+    const map: Record<string, Student[]> = {};
+    MOCK_DEPARTMENTS.forEach(d => { map[d.id] = d.students || []; });
+    return map;
+  });
   const [showAddStudent, setShowAddStudent] = useState<string | null>(null);
   const [newStudent, setNewStudent] = useState({ name: '', email: '', roll_no: '', year: 1 });
 
@@ -51,9 +53,10 @@ export default function DepartmentMgmtPage() {
       name: newDept.name,
       code: newDept.code.toUpperCase(),
       subjects: newDept.subjects.split(',').map(s => s.trim()).filter(Boolean),
-      student_count: 0, faculty_count: 0, status: 'active', faculties: [],
+      student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [],
     };
     MOCK_DEPARTMENTS.push(dept);
+    saveDepartments();
     setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setNewDept({ name: '', code: '', subjects: '' });
     setShowAdd(false);
@@ -68,11 +71,16 @@ export default function DepartmentMgmtPage() {
       name: newStudent.name, email: newStudent.email,
       roll_no: roll, year: newStudent.year, status: 'active',
     };
-    const updated = { ...students, [deptId]: [...existing, s] };
-    STUDENT_STORE[deptId] = updated[deptId];
+    const nextList = [...existing, s];
+    const updated = { ...students, [deptId]: nextList };
     setStudents(updated);
-    // Update dept student count
-    setDepartments(prev => prev.map(d => d.id === deptId ? {...d, student_count: (students[deptId]?.length || 0) + 1} : d));
+    const dObj = MOCK_DEPARTMENTS.find(d => d.id === deptId);
+    if (dObj) {
+      dObj.students = nextList;
+      dObj.student_count = nextList.length;
+      saveDepartments();
+    }
+    setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setNewStudent({ name:'', email:'', roll_no:'', year:1 });
     setShowAddStudent(null);
   }
@@ -80,40 +88,52 @@ export default function DepartmentMgmtPage() {
   function assignFaculty(deptId: string) {
     const user = MOCK_USERS.find(u => u.uid === assignFacultyUid);
     if (!user) return;
-    setDepartments(prev => prev.map(d => {
-      if (d.id !== deptId) return d;
-      const faculties = d.faculties || [];
-      if (faculties.some(f => f.uid === user.uid)) return d;
-      return {
-        ...d,
-        faculties: [...faculties, { uid: user.uid, name: user.name, email: user.email, subject: assignSubject, role: 'faculty' }],
-        faculty_count: (d.faculty_count || 0) + 1,
-      };
-    }));
+    const dObj = MOCK_DEPARTMENTS.find(d => d.id === deptId);
+    if (dObj) {
+      const faculties = dObj.faculties || [];
+      if (!faculties.some(f => f.uid === user.uid)) {
+        dObj.faculties = [...faculties, { uid: user.uid, name: user.name, email: user.email, subject: assignSubject, role: 'faculty' }];
+        dObj.faculty_count = dObj.faculties.length;
+        saveDepartments();
+      }
+    }
+    setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setAssignFacultyUid(''); setAssignSubject(''); setShowAssignFaculty(null);
   }
 
   function assignHod(deptId: string) {
     const user = MOCK_USERS.find(u => u.uid === assignHodUid);
     if (!user) return;
-    setDepartments(prev => prev.map(d => {
-      if (d.id !== deptId) return d;
-      return { ...d, hod_id: user.uid, hod_name: user.name };
-    }));
+    const dObj = MOCK_DEPARTMENTS.find(d => d.id === deptId);
+    if (dObj) {
+      dObj.hod_id = user.uid;
+      dObj.hod_name = user.name;
+      saveDepartments();
+    }
+    setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setAssignHodUid(''); setShowAssignHod(null);
   }
 
   function removeFaculty(deptId: string, uid: string) {
-    setDepartments(prev => prev.map(d => {
-      if (d.id !== deptId) return d;
-      return { ...d, faculties: (d.faculties || []).filter(f => f.uid !== uid), faculty_count: Math.max(0, d.faculty_count - 1) };
-    }));
+    const dObj = MOCK_DEPARTMENTS.find(d => d.id === deptId);
+    if (dObj) {
+      dObj.faculties = (dObj.faculties || []).filter(f => f.uid !== uid);
+      dObj.faculty_count = dObj.faculties.length;
+      saveDepartments();
+    }
+    setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
   }
 
   function removeStudent(deptId: string, uid: string) {
-    const updated = { ...students, [deptId]: (students[deptId] || []).filter(s => s.uid !== uid) };
-    setStudents(updated);
-    setDepartments(prev => prev.map(d => d.id === deptId ? {...d, student_count: Math.max(0, d.student_count - 1)} : d));
+    const nextList = (students[deptId] || []).filter(s => s.uid !== uid);
+    setStudents({ ...students, [deptId]: nextList });
+    const dObj = MOCK_DEPARTMENTS.find(d => d.id === deptId);
+    if (dObj) {
+      dObj.students = nextList;
+      dObj.student_count = nextList.length;
+      saveDepartments();
+    }
+    setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
   }
 
   const facultyUsers = MOCK_USERS.filter(u => u.role === 'faculty' || u.role === 'dept_admin');

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { FileText, Upload, Search, Lock, Archive, X, ChevronDown, AlertCircle } from 'lucide-react';
 import { ClassificationBadge, StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_DOCUMENTS, MOCK_DEPARTMENTS } from '../../mocks/data';
+import { MOCK_DOCUMENTS, MOCK_DEPARTMENTS, saveDocuments } from '../../mocks/data';
 import { formatRelative, formatBytes } from '../../utils/format';
 import type { Document, Classification, DocumentCategory } from '../../types/document';
 
@@ -203,16 +203,32 @@ export default function DocumentMgmtPage() {
   }, [documents, search, filterDept, filterClass]);
 
   function toggleLock(id: string) {
-    setDocuments(prev => prev.map(d => d.document_id === id ? { ...d, emergency_locked: !d.emergency_locked } : d));
+    const idx = MOCK_DOCUMENTS.findIndex(d => d.document_id === id);
+    if (idx > -1) {
+      MOCK_DOCUMENTS[idx] = { ...MOCK_DOCUMENTS[idx], emergency_locked: !MOCK_DOCUMENTS[idx].emergency_locked };
+      saveDocuments();
+    }
+    setDocuments([...MOCK_DOCUMENTS]);
   }
 
   function archive(id: string) {
-    setDocuments(prev => prev.map(d => d.document_id === id ? { ...d, status: d.status === 'archived' ? 'active' : 'archived' } : d));
+    const idx = MOCK_DOCUMENTS.findIndex(d => d.document_id === id);
+    if (idx > -1) {
+      MOCK_DOCUMENTS[idx] = { ...MOCK_DOCUMENTS[idx], status: MOCK_DOCUMENTS[idx].status === 'archived' ? 'active' : 'archived' };
+      saveDocuments();
+    }
+    setDocuments([...MOCK_DOCUMENTS]);
+  }
+
+  function handleUpload(doc: Document) {
+    MOCK_DOCUMENTS.unshift(doc);
+    saveDocuments();
+    setDocuments([...MOCK_DOCUMENTS]);
   }
 
   return (
     <div className="space-y-5">
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={doc => setDocuments(prev => [doc, ...prev])} />}
+      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} />}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
