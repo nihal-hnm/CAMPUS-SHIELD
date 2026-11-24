@@ -57,10 +57,10 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
   }
 
   const classColor: Record<Classification, string> = {
-    public: 'border-green-400 bg-green-50',
-    internal: 'border-blue-400 bg-blue-50',
-    restricted: 'border-orange-400 bg-orange-50',
-    confidential: 'border-red-400 bg-red-50',
+    public: 'border-success/40 bg-success-soft text-success',
+    internal: 'border-info/40 bg-info-soft text-info',
+    restricted: 'border-warning/40 bg-warning-soft text-warning-dark',
+    confidential: 'border-danger/40 bg-danger-soft text-danger-dark',
   };
 
   const classDesc: Record<Classification, string> = {

@@ -315,13 +315,13 @@ export default function UserManagementPage() {
                 </td>
                 <td className="px-4 py-3 text-text-muted">{u.email}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    (u.role as string) === 'ultra_admin' ? 'bg-purple-200 text-purple-900' :
-                    u.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
-                    u.role === 'dept_admin'  ? 'bg-blue-100 text-blue-700' :
-                    u.role === 'faculty'     ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span className={
+                    (u.role as string) === 'ultra_admin' ? 'badge bg-navy text-text-on-navy' :
+                    u.role === 'super_admin' ? 'badge bg-primary-soft text-primary-hover' :
+                    u.role === 'dept_admin'  ? 'badge-info' :
+                    u.role === 'faculty'     ? 'badge-success' :
+                    'badge-neutral'
+                  }>
                     {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                   </span>
                 </td>

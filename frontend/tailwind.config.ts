@@ -47,8 +47,8 @@ export default {
           soft: '#F1F5F9',
         },
         info: {
-          DEFAULT: '#1D4ED8',
-          soft: '#EFF4FF',
+          DEFAULT: '#0E7490',
+          soft: '#ECFEFF',
         },
       },
       boxShadow: {

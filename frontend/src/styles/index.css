@@ -5,29 +5,6 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-navy: #17243A;
-    --color-primary: #2563EB;
-    --color-bg: #F6F7F9;
-    --color-surface: #FFFFFF;
-    --color-text: #202938;
-    --color-text-muted: #526071;
-    --color-border: #E5E7EB;
-    --color-success: #15803D;
-    --color-warning: #D97706;
-    --color-danger: #DC2626;
-    --color-primary-hover: #1D4ED8;
-    --color-primary-soft: #EFF4FF;
-    --color-navy-hover: #1F3150;
-    --color-navy-active: #243A5E;
-    --color-success-soft: #ECFDF3;
-    --color-warning-soft: #FFF7E6;
-    --color-danger-soft: #FEF2F2;
-    --color-neutral-soft: #F1F5F9;
-    --color-text-on-navy: #E2E8F0;
-    --color-text-on-navy-muted: #94A3B8;
-  }
-
   * {
     @apply border-border;
   }

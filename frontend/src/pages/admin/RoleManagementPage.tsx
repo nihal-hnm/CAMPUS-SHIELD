@@ -123,7 +123,7 @@ export default function RoleManagementPage() {
                 </div>
               </div>
               {newRole === 'dept_admin' && (
-                <div className="p-3 rounded bg-blue-50 text-blue-700 text-xs">
+                <div className="p-3 rounded bg-info-soft text-info text-xs">
                   Changing to HOD will assign the HOD tag and grant department-level admin access.
                 </div>
               )}
@@ -170,12 +170,12 @@ export default function RoleManagementPage() {
                 <td className="px-4 py-3 text-text-muted">{u.email}</td>
                 <td className="px-4 py-3 text-text-muted">{u.department || '—'}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    u.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
-                    u.role === 'dept_admin'  ? 'bg-blue-100 text-blue-700' :
-                    u.role === 'faculty'     ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span className={
+                    (u.role as string) === 'ultra_admin' || u.role === 'super_admin' ? 'badge bg-primary-soft text-primary-hover' :
+                    u.role === 'dept_admin'  ? 'badge-info' :
+                    u.role === 'faculty'     ? 'badge-success' :
+                    'badge-neutral'
+                  }>
                     {u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                   </span>
                 </td>

@@ -217,10 +217,10 @@ export default function PermissionMgmtPage() {
   }, [filtered]);
 
   const levelColor: Record<string, string> = {
-    View: 'bg-blue-50 text-blue-700 border-blue-200',
-    Download: 'bg-green-50 text-green-700 border-green-200',
-    Share: 'bg-purple-50 text-purple-700 border-purple-200',
-    Edit: 'bg-orange-50 text-orange-700 border-orange-200',
+    View: 'bg-info-soft text-info border-info/30',
+    Download: 'bg-success-soft text-success border-success/30',
+    Share: 'bg-primary-soft text-primary-hover border-primary/30',
+    Edit: 'bg-warning-soft text-warning-dark border-warning/30',
   };
 
   return (
