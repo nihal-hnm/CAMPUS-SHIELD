@@ -1,0 +1,8 @@
+# CampusShield Backend — Render.com deployment
+# Service type: Web Service
+# Root Directory: backend
+# Build Command: pip install -r requirements.txt
+# Start Command: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+# Environment: Python 3.12
+
+web: python -m uvicorn main:app --host 0.0.0.0 --port $PORT

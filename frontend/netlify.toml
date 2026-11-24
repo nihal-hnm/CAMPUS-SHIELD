@@ -1,0 +1,16 @@
+# Vercel deployment config for CampusShield Frontend
+# Root: frontend/
+# Build: npm run build
+# Output: dist
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200

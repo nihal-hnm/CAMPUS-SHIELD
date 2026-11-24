@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap');
+
+@layer base {
+  :root {
+    --color-navy: #17243A;
+    --color-primary: #2563EB;
+    --color-bg: #F6F7F9;
+    --color-surface: #FFFFFF;
+    --color-text: #202938;
+    --color-text-muted: #64748B;
+    --color-border: #E5E7EB;
+    --color-success: #15803D;
+    --color-warning: #D97706;
+    --color-danger: #DC2626;
+    --color-primary-hover: #1D4ED8;
+    --color-primary-soft: #EFF4FF;
+    --color-navy-hover: #1F3150;
+    --color-navy-active: #243A5E;
+    --color-success-soft: #ECFDF3;
+    --color-warning-soft: #FFF7E6;
+    --color-danger-soft: #FEF2F2;
+    --color-neutral-soft: #F1F5F9;
+    --color-text-on-navy: #E2E8F0;
+    --color-text-on-navy-muted: #94A3B8;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans text-sm antialiased;
+  }
+
+  h1 { @apply text-2xl font-semibold leading-8; }
+  h2 { @apply text-lg font-semibold leading-7; }
+  h3 { @apply text-base font-semibold leading-6; }
+}
+
+@layer components {
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-text-on-navy hover:bg-navy-hover transition-colors duration-150 cursor-pointer;
+  }
+
+  .sidebar-item-active {
+    @apply bg-navy-active text-white border-l-[3px] border-primary pl-[9px];
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply btn bg-surface text-text border border-border hover:bg-bg;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-danger-dark;
+  }
+
+  .btn-ghost {
+    @apply btn text-text-muted hover:bg-bg hover:text-text;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 text-sm border border-border rounded bg-surface text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary;
+  }
+
+  .card {
+    @apply bg-surface border border-border rounded shadow-card;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded;
+  }
+
+  .badge-success { @apply badge bg-success-soft text-success; }
+  .badge-warning { @apply badge bg-warning-soft text-warning-dark; }
+  .badge-danger  { @apply badge bg-danger-soft text-danger-dark; }
+  .badge-neutral { @apply badge bg-neutral-soft text-text-muted; }
+  .badge-info    { @apply badge bg-info-soft text-info; }
+}

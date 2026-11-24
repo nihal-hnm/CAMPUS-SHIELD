@@ -1,0 +1,26 @@
+# render.yaml — One-click deploy to Render.com
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: campusshield-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: SUPABASE_URL
+        sync: false          # Set manually in Render dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure value
+      - key: CORS_ORIGINS
+        value: https://campusshield.vercel.app,http://localhost:5173
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /health
+    autoDeploy: true
