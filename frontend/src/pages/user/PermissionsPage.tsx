@@ -1,5 +1,3 @@
-import React from 'react';
-import { KeyRound } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/feedback/States';
 import { MOCK_PERMISSIONS } from '../../mocks/data';

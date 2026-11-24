@@ -1,6 +1,4 @@
-import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Activity } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { MOCK_AUDIT_LOGS } from '../../mocks/data';
 import { formatDateTime } from '../../utils/format';

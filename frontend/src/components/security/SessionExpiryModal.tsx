@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { getLastActivity } from '../../services/apiClient';
 
 interface Props {
   /** seconds remaining before idle timeout. Show warning when ≤ 120 */

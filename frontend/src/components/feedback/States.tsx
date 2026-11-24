@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 
 interface EmptyStateProps { title: string; description?: string; action?: ReactNode; }
 interface ErrorStateProps { message: string; code?: string | number; onRetry?: () => void; }
-interface LoadingStateProps { rows?: number; }
+interface LoadingStateProps { rows?: number; message?: string; }
 
 export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
@@ -44,10 +44,13 @@ export function SkeletonRow() {
   );
 }
 
-export function LoadingState({ rows = 8 }: LoadingStateProps) {
+export function LoadingState({ rows = 8, message }: LoadingStateProps) {
   return (
-    <div className="rounded border border-border overflow-hidden">
-      {Array.from({ length: rows }).map((_, i) => <SkeletonRow key={i} />)}
+    <div className="space-y-3">
+      {message && <p className="text-sm text-text-muted">{message}</p>}
+      <div className="rounded border border-border overflow-hidden">
+        {Array.from({ length: rows }).map((_, i) => <SkeletonRow key={i} />)}
+      </div>
     </div>
   );
 }

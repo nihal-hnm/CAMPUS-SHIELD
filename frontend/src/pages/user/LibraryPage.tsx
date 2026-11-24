@@ -5,7 +5,7 @@ import { ClassificationBadge, StatusBadge } from '../../components/ui/StatusBadg
 import { Button } from '../../components/ui/Button';
 import { EmptyState, ErrorState, LoadingState } from '../../components/feedback/States';
 import { listDocuments } from '../../services/apiClient';
-import { formatRelative, formatBytes } from '../../utils/format';
+import { formatRelative } from '../../utils/format';
 import type { Document } from '../../types/document';
 
 function DocumentRow({ doc }: { doc: Document }) {

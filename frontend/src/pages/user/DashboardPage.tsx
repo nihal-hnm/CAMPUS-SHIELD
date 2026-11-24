@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { FileText, KeyRound, Inbox, AlertTriangle, BookOpen, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { StatusBadge, ClassificationBadge } from '../../components/ui/StatusBadge';
-import { Button } from '../../components/ui/Button';
-import { MOCK_DOCUMENTS, MOCK_AUDIT_LOGS, MOCK_PERMISSIONS, MOCK_REQUESTS } from '../../mocks/data';
+import { ClassificationBadge } from '../../components/ui/StatusBadge';
+import { MOCK_DOCUMENTS, MOCK_PERMISSIONS, MOCK_REQUESTS } from '../../mocks/data';
 import { formatRelative, formatCountdown } from '../../utils/format';
 
 function StatCard({ label, value, sub, icon: Icon, to }: { label: string; value: number | string; sub?: string; icon: React.ComponentType<{ className?: string }>; to?: string }) {

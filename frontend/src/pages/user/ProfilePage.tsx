@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Shield, Bell, Sliders } from 'lucide-react';
+import { User, Shield, Sliders } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user } = useAuth();
