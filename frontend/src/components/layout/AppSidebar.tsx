@@ -59,7 +59,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'super_admin';
+  const isAdmin = user.role === 'super_admin' || (user.role as string) === 'ultra_admin';
   const groups = isAdmin ? adminNav() : userNav(user.role);
 
   return (

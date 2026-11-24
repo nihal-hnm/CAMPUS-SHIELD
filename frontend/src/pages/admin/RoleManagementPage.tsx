@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Shield, Users, GraduationCap, BookOpen, Edit, X, ChevronDown, Search } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
@@ -18,6 +18,7 @@ const ALL_ROLES = [
   { value: 'faculty',     label: 'Faculty' },
   { value: 'dept_admin',  label: 'H.O.D' },
   { value: 'super_admin', label: 'Admin' },
+  { value: 'ultra_admin', label: 'Ultra Admin' },
 ];
 
 export default function RoleManagementPage() {

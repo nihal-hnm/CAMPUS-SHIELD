@@ -6,13 +6,14 @@ import { MOCK_USERS, MOCK_DEPARTMENTS, MOCK_CREDENTIALS } from '../../mocks/data
 import { formatRelative } from '../../utils/format';
 import type { User } from '../../types/user';
 
-type Role = 'faculty' | 'dept_admin' | 'student' | 'super_admin';
+type Role = 'faculty' | 'dept_admin' | 'student' | 'super_admin' | 'ultra_admin';
 
 const ROLES: { value: Role; label: string }[] = [
   { value: 'student',     label: 'Student' },
   { value: 'faculty',     label: 'Faculty' },
   { value: 'dept_admin',  label: 'H.O.D' },
   { value: 'super_admin', label: 'Admin' },
+  { value: 'ultra_admin', label: 'Ultra Admin' },
 ];
 
 function genId(role: string) {
@@ -285,12 +286,13 @@ export default function UserManagementPage() {
                 <td className="px-4 py-3 text-text-muted">{u.email}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    (u.role as string) === 'ultra_admin' ? 'bg-purple-200 text-purple-900' :
                     u.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
                     u.role === 'dept_admin'  ? 'bg-blue-100 text-blue-700' :
                     u.role === 'faculty'     ? 'bg-green-100 text-green-700' :
                     'bg-gray-100 text-gray-600'
                   }`}>
-                    {u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                    {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-text-muted">{u.department}</td>

@@ -6,10 +6,23 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
 // In-memory token store (never localStorage — Zero-Trust requirement)
-let _token: string | null = null;
-let _currentUser: User | null = null;
-let _signinTime: number | null = null;
+// sessionStorage used for refresh persistence: survives F5, cleared on tab close
+const SS_KEY_TOKEN = 'cv_tok';
+const SS_KEY_USER  = 'cv_usr';
+const SS_KEY_TIME  = 'cv_st';
+
+let _token: string | null = (() => { try { return sessionStorage.getItem(SS_KEY_TOKEN); } catch { return null; } })();
+let _currentUser: User | null = (() => { try { const s = sessionStorage.getItem(SS_KEY_USER); return s ? JSON.parse(s) : null; } catch { return null; } })();
+let _signinTime: number | null = (() => { try { const s = sessionStorage.getItem(SS_KEY_TIME); return s ? Number(s) : null; } catch { return null; } })();
 let _lastActivity: number = Date.now();
+
+function _persist() {
+  try {
+    if (_token)       sessionStorage.setItem(SS_KEY_TOKEN, _token); else sessionStorage.removeItem(SS_KEY_TOKEN);
+    if (_currentUser) sessionStorage.setItem(SS_KEY_USER, JSON.stringify(_currentUser)); else sessionStorage.removeItem(SS_KEY_USER);
+    if (_signinTime)  sessionStorage.setItem(SS_KEY_TIME, String(_signinTime)); else sessionStorage.removeItem(SS_KEY_TIME);
+  } catch { /* private/incognito may block sessionStorage */ }
+}
 
 export function getToken() { return _token; }
 export function getCurrentUser() { return _currentUser; }
@@ -48,6 +61,7 @@ function mockLogin(email: string, password: string): User {
   _currentUser = user;
   _signinTime = Date.now();
   _lastActivity = Date.now();
+  _persist();
   return user;
 }
 
@@ -64,6 +78,7 @@ export async function login(email: string, password: string): Promise<User> {
     _currentUser = data.user;
     _signinTime = Date.now();
     _lastActivity = Date.now();
+    _persist();
     return data.user;
   } catch (err: any) {
     if (err?.reason_code === 'INVALID_CREDENTIALS') {
@@ -82,6 +97,7 @@ export async function login(email: string, password: string): Promise<User> {
 export async function logout(): Promise<void> {
   if (!USE_MOCKS) await request('/api/v1/auth/logout', { method: 'POST' }).catch(() => {});
   _token = null; _currentUser = null; _signinTime = null;
+  _persist();
 }
 
 export async function reauth(password: string): Promise<void> {
@@ -90,10 +106,12 @@ export async function reauth(password: string): Promise<void> {
     if (!_currentUser || MOCK_CREDENTIALS[_currentUser.email]?.password !== password)
       throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
     _signinTime = Date.now();
+    _persist();
     return;
   }
   await request('/api/v1/auth/reauth', { method: 'POST', body: JSON.stringify({ password }) });
   _signinTime = Date.now();
+  _persist();
 }
 
 export async function logoutTab(): Promise<void> {
@@ -101,6 +119,7 @@ export async function logoutTab(): Promise<void> {
     navigator.sendBeacon(`${API_BASE}/api/v1/auth/logout-tab`, JSON.stringify({ token: _token }));
   }
   _token = null; _currentUser = null; _signinTime = null;
+  _persist();
 }
 
 export async function getMe(): Promise<User> {

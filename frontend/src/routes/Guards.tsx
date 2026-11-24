@@ -4,7 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import type { Role } from '../types/user';
 
 interface RequireAuthProps { children: React.ReactNode; }
-interface RequireRoleProps { roles: Role[]; children: React.ReactNode; }
+interface RequireRoleProps { roles: string[]; children: React.ReactNode; }
+
+const ADMIN_ROLES = ['super_admin', 'ultra_admin'];
 
 export function RequireAuth({ children }: RequireAuthProps) {
   const { user, loading } = useAuth();
@@ -27,7 +29,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
 export function RequireRole({ roles, children }: RequireRoleProps) {
   const { user } = useAuth();
-  if (!user || !roles.includes(user.role)) {
+  if (!user || !roles.includes(user.role as string)) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
         <div className="w-14 h-14 rounded-full bg-danger-soft flex items-center justify-center">
@@ -46,6 +48,6 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
 export function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'super_admin' || (user.role as string) === 'ultra_admin') return <Navigate to="/admin" replace />;
+  if (ADMIN_ROLES.includes(user.role as string)) return <Navigate to="/admin" replace />;
   return <Navigate to="/dashboard" replace />;
 }
