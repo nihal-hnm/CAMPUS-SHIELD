@@ -198,6 +198,7 @@ const router = createBrowserRouter([
       { path: 'roles',            element: <Suspense fallback={<Loading />}><RoleManagementPage /></Suspense> },
       { path: 'tags',             element: <Suspense fallback={<Loading />}><TagManagementPage /></Suspense> },
       { path: 'documents',        element: <Suspense fallback={<Loading />}><DocumentMgmtPage /></Suspense> },
+      { path: 'assignments',      element: <Suspense fallback={<Loading />}><FacultyGradingPage /></Suspense> },
       { path: 'permissions',      element: <Suspense fallback={<Loading />}><PermissionMgmtPage /></Suspense> },
       { path: 'magic-links',      element: <Suspense fallback={<Loading />}><MagicLinksPage /></Suspense> },
       { path: 'requests',         element: <Suspense fallback={<Loading />}><AccessRequestsAdminPage /></Suspense> },

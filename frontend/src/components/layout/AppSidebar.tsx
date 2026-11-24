@@ -27,7 +27,10 @@ function adminNav(): NavGroup[] {
         { label: 'Roles',         to: '/admin/roles',       icon: Shield },
         { label: 'Special Tags',  to: '/admin/tags',        icon: Tag },
     ]},
-    { group: 'Content', items: [{ label: 'Documents', to: '/admin/documents', icon: Files }] },
+    { group: 'Content', items: [
+        { label: 'Documents',             to: '/admin/documents',   icon: Files },
+        { label: 'Assignments & Grading', to: '/admin/assignments', icon: Award },
+    ]},
     { group: 'Access Control', items: [
         { label: 'Permissions',   to: '/admin/permissions', icon: KeyRound },
         { label: 'Magic Links',   to: '/admin/magic-links', icon: Link2 },
@@ -57,8 +60,8 @@ function userNav(role: Role): NavGroup[] {
     groups.push({
       group: 'Faculty Controls',
       items: [
-        { label: 'Upload & Docs',        to: '/faculty/documents', icon: Files },
-        { label: 'Submissions & Grades', to: '/faculty/grades',    icon: Award },
+        { label: 'Upload & Docs',         to: '/faculty/documents', icon: Files },
+        { label: 'Assignments & Grading', to: '/faculty/grades',    icon: Award },
       ],
     });
   }
@@ -66,13 +69,13 @@ function userNav(role: Role): NavGroup[] {
     groups.push({
       group: 'H.O.D Controls',
       items: [
-        { label: 'Dept & Students',   to: '/hod/department',   icon: Building2 },
-        { label: 'Upload & Docs',     to: '/hod/documents',    icon: Files },
-        { label: 'Grant Permissions', to: '/hod/permissions',  icon: KeyRound },
-        { label: 'Magic Links',       to: '/hod/magic-links',  icon: Link2 },
-        { label: 'Approve Requests',  to: '/hod/requests',     icon: Inbox },
-        { label: 'Submissions & Grades', to: '/faculty/grades', icon: Award },
-        { label: 'Dept Activity',     to: '/department/activity', icon: Activity },
+        { label: 'Dept & Students',       to: '/hod/department',   icon: Building2 },
+        { label: 'Upload & Docs',         to: '/hod/documents',    icon: Files },
+        { label: 'Grant Permissions',     to: '/hod/permissions',  icon: KeyRound },
+        { label: 'Magic Links',           to: '/hod/magic-links',  icon: Link2 },
+        { label: 'Approve Requests',      to: '/hod/requests',     icon: Inbox },
+        { label: 'Assignments & Grading', to: '/faculty/grades',   icon: Award },
+        { label: 'Dept Activity',         to: '/department/activity', icon: Activity },
       ],
     });
   }
