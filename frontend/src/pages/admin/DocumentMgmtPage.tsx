@@ -3,6 +3,7 @@ import { FileText, Upload, Search, Lock, Archive, X, ChevronDown, AlertCircle } 
 import { ClassificationBadge, StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_DOCUMENTS, MOCK_DEPARTMENTS, saveDocuments } from '../../mocks/data';
+import { useAuth } from '../../context/AuthContext';
 import { formatRelative, formatBytes } from '../../utils/format';
 import type { Document, Classification, DocumentCategory } from '../../types/document';
 
@@ -11,9 +12,10 @@ const CATEGORIES: DocumentCategory[]    = ['exam_paper', 'circular', 'syllabus',
 const DEPTS = MOCK_DEPARTMENTS.map(d => d.code);
 
 // ── Upload Modal ──────────────────────────────────────────────────────────────
-function UploadModal({ onClose, onUpload }: { onClose: () => void; onUpload: (doc: Document) => void }) {
+function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; onUpload: (doc: Document) => void; fixedDept?: string }) {
+  const { user } = useAuth();
   const [title, setTitle]           = useState('');
-  const [dept, setDept]             = useState('');
+  const [dept, setDept]             = useState(fixedDept ?? '');
   const [subject, setSubject]       = useState('');
   const [category, setCategory]     = useState<DocumentCategory>('general');
   const [classification, setClassification] = useState<Classification>('internal');
@@ -42,8 +44,8 @@ function UploadModal({ onClose, onUpload }: { onClose: () => void; onUpload: (do
       subject_id: subject || undefined,
       category,
       classification,
-      uploaded_by: 'usr_admin_001',
-      uploader_name: 'Principal Kumar',
+      uploaded_by: user?.uid ?? 'usr_admin_001',
+      uploader_name: user?.name ?? 'Admin',
       emergency_locked: false,
       status: 'active',
       created_at: new Date().toISOString(),
@@ -115,8 +117,8 @@ function UploadModal({ onClose, onUpload }: { onClose: () => void; onUpload: (do
           <div>
             <label className="block text-xs font-medium text-text-muted mb-1">Department *</label>
             <div className="relative">
-              <select className="input w-full text-sm appearance-none pr-7" value={dept} onChange={e => { setDept(e.target.value); setSubject(''); }}>
-                <option value="">Select dept…</option>
+              <select className="input w-full text-sm appearance-none pr-7" value={dept} onChange={e => { setDept(e.target.value); setSubject(''); }} disabled={!!fixedDept}>
+                {!fixedDept && <option value="">Select dept…</option>}
                 {DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" />
@@ -186,6 +188,10 @@ function UploadModal({ onClose, onUpload }: { onClose: () => void; onUpload: (do
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DocumentMgmtPage() {
+  const { user } = useAuth();
+  const isHod = user?.role === 'dept_admin';
+  const hodDept = user?.department;
+
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [showUpload, setShowUpload] = useState(false);
   const [search, setSearch] = useState('');
@@ -194,13 +200,14 @@ export default function DocumentMgmtPage() {
 
   const filtered = useMemo(() => {
     return documents.filter(d => {
+      if (isHod && d.department !== hodDept) return false;
       const q = search.toLowerCase();
       const matchSearch = !search || d.title.toLowerCase().includes(q) || d.department.toLowerCase().includes(q) || (d.subject_id ?? '').toLowerCase().includes(q) || (d.uploader_name ?? '').toLowerCase().includes(q);
       const matchDept  = !filterDept  || d.department === filterDept;
       const matchClass = !filterClass || d.classification === filterClass;
       return matchSearch && matchDept && matchClass;
     });
-  }, [documents, search, filterDept, filterClass]);
+  }, [documents, search, filterDept, filterClass, isHod, hodDept]);
 
   function toggleLock(id: string) {
     const idx = MOCK_DOCUMENTS.findIndex(d => d.document_id === id);
@@ -228,7 +235,7 @@ export default function DocumentMgmtPage() {
 
   return (
     <div className="space-y-5">
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} />}
+      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} fixedDept={isHod ? hodDept : undefined} />}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

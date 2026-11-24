@@ -6,6 +6,7 @@ import {
 import { Button } from '../../components/ui/Button';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { MOCK_DEPARTMENTS, MOCK_USERS, saveDepartments, type Department, type Student } from '../../mocks/data';
+import { useAuth } from '../../context/AuthContext';
 
 type DeptTab = 'subjects' | 'students' | 'faculty';
 
@@ -15,11 +16,17 @@ function genRoll(deptCode: string, existing: Student[]) {
 }
 
 export default function DepartmentMgmtPage() {
+  const { user } = useAuth();
+  const isHod = user?.role === 'dept_admin';
+  const hodDept = user?.department;
+
   const [departments, setDepartments] = useState<Department[]>(
     MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')
   );
   const [search, setSearch] = useState('');
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(() =>
+    isHod ? (MOCK_DEPARTMENTS.find(d => d.code === hodDept)?.id ?? null) : null
+  );
   const [deptTab, setDeptTab] = useState<Record<string, DeptTab>>({});
   const [showAdd, setShowAdd] = useState(false);
   const [newDept, setNewDept] = useState({ name: '', code: '', subjects: '' });
@@ -42,9 +49,10 @@ export default function DepartmentMgmtPage() {
   const [showAssignHod, setShowAssignHod] = useState<string | null>(null);
   const [assignHodUid, setAssignHodUid] = useState('');
 
-  const filtered = useMemo(() => departments.filter(d =>
-    !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.code.toLowerCase().includes(search.toLowerCase())
-  ), [departments, search]);
+  const filtered = useMemo(() => departments.filter(d => {
+    if (isHod && d.code !== hodDept) return false;
+    return !search || d.name.toLowerCase().includes(search.toLowerCase()) || d.code.toLowerCase().includes(search.toLowerCase());
+  }), [departments, search, isHod, hodDept]);
 
   function handleAdd() {
     if (!newDept.name || !newDept.code) return;
@@ -144,12 +152,20 @@ export default function DepartmentMgmtPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-text">Department Management</h1>
-          <p className="text-sm text-text-muted mt-1">Manage departments, HODs, faculties and student lists. {departments.length} departments.</p>
+          <h1 className="text-2xl font-semibold text-text">
+            {isHod ? `${hodDept} Department` : 'Department Management'}
+          </h1>
+          <p className="text-sm text-text-muted mt-1">
+            {isHod
+              ? `Manage students, faculties, and subjects for ${hodDept}.`
+              : `Manage departments, HODs, faculties and student lists. ${departments.length} departments.`}
+          </p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowAdd(v => !v)}>
-          <Plus className="w-4 h-4" /> Add Department
-        </Button>
+        {!isHod && (
+          <Button variant="primary" size="sm" onClick={() => setShowAdd(v => !v)}>
+            <Plus className="w-4 h-4" /> Add Department
+          </Button>
+        )}
       </div>
 
       {/* Add Dept Form */}

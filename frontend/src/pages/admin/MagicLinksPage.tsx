@@ -19,6 +19,9 @@ function formatExpiry(iso: string) {
 
 export default function MagicLinksPage() {
   const { user } = useAuth();
+  const isHod = user?.role === 'dept_admin';
+  const hodDept = user?.department;
+  const availableDocs = isHod ? MOCK_DOCUMENTS.filter(d => d.department === hodDept) : MOCK_DOCUMENTS;
   const [links, setLinks] = useState<MagicLink[]>(MOCK_MAGIC_LINKS);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ document_id: '', expires_minutes: 60 });
@@ -57,6 +60,13 @@ export default function MagicLinksPage() {
     setLinks([...MOCK_MAGIC_LINKS]);
   }
 
+  const visibleLinks = isHod
+    ? links.filter(l => {
+        const doc = MOCK_DOCUMENTS.find(d => d.document_id === l.document_id);
+        return doc ? doc.department === hodDept : l.created_by === user?.uid;
+      })
+    : links;
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -91,7 +101,7 @@ export default function MagicLinksPage() {
               <div className="relative">
                 <select className="input w-full text-sm appearance-none pr-8" value={form.document_id} onChange={e => setForm(v => ({...v, document_id: e.target.value}))}>
                   <option value="">Select document…</option>
-                  {MOCK_DOCUMENTS.map(d => <option key={d.document_id} value={d.document_id}>{d.title}</option>)}
+                  {availableDocs.map(d => <option key={d.document_id} value={d.document_id}>{d.title}</option>)}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
               </div>
@@ -121,7 +131,7 @@ export default function MagicLinksPage() {
       )}
 
       {/* Links Table */}
-      {links.length === 0 ? (
+      {visibleLinks.length === 0 ? (
         <div className="card p-10 text-center text-text-muted text-sm">No magic links created yet. Click "Create Magic Link" to get started.</div>
       ) : (
         <div className="card overflow-hidden overflow-x-auto">
@@ -134,9 +144,16 @@ export default function MagicLinksPage() {
               </tr>
             </thead>
             <tbody>
-              {links.map(l => {
+              {visibleLinks.map(l => {
                 const expired = new Date(l.expires_at) < new Date();
-                return (
+                const visibleLinks = isHod
+    ? links.filter(l => {
+        const doc = MOCK_DOCUMENTS.find(d => d.document_id === l.document_id);
+        return doc ? doc.department === hodDept : l.created_by === user?.uid;
+      })
+    : links;
+
+  return (
                   <tr key={l.token} className="border-b border-border hover:bg-bg">
                     <td className="px-4 py-3 font-medium text-text">{l.document_title}</td>
                     <td className="px-4 py-3 text-text-muted text-xs">{l.created_by_name}</td>

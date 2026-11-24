@@ -45,11 +45,25 @@ function adminNav(): NavGroup[] {
 function userNav(role: Role): NavGroup[] {
   const items: NavItem[] = [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard }];
   items.push({ label: 'Document Library', to: '/library', icon: Files });
-  if (role === 'dept_admin') items.push({ label: 'Dept Activity', to: '/department/activity', icon: Activity });
   items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
   items.push({ label: 'Access Requests', to: '/requests', icon: Inbox });
   items.push({ label: 'Profile', to: '/profile', icon: User });
-  return [{ group: 'Navigation', items }];
+
+  const groups: NavGroup[] = [{ group: 'Navigation', items }];
+  if (role === 'dept_admin') {
+    groups.push({
+      group: 'H.O.D Controls',
+      items: [
+        { label: 'Dept & Students',   to: '/hod/department',   icon: Building2 },
+        { label: 'Upload & Docs',     to: '/hod/documents',    icon: Files },
+        { label: 'Grant Permissions', to: '/hod/permissions',  icon: KeyRound },
+        { label: 'Magic Links',       to: '/hod/magic-links',  icon: Link2 },
+        { label: 'Approve Requests',  to: '/hod/requests',     icon: Inbox },
+        { label: 'Dept Activity',     to: '/department/activity', icon: Activity },
+      ],
+    });
+  }
+  return groups;
 }
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {

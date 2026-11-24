@@ -1,23 +1,54 @@
 import { useState } from 'react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_REQUESTS, saveRequests } from '../../mocks/data';
+import { MOCK_REQUESTS, MOCK_DOCUMENTS, MOCK_USERS, MOCK_PERMISSIONS, saveRequests, savePermissions } from '../../mocks/data';
+import { useAuth } from '../../context/AuthContext';
 import { formatRelative } from '../../utils/format';
 import type { AccessRequest } from '../../types/permission';
 import { CheckCircle, XCircle, Clock, Inbox } from 'lucide-react';
 
 export default function AccessRequestsAdminPage() {
+  const { user } = useAuth();
+  const isHod = user?.role === 'dept_admin';
+  const hodDept = user?.department;
+
   const [requests, setRequests] = useState<AccessRequest[]>(MOCK_REQUESTS);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
-  const filtered = requests.filter(r => filter === 'all' || r.status === filter);
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const scopedRequests = isHod && hodDept
+    ? requests.filter(r => {
+        const doc = MOCK_DOCUMENTS.find(d => d.document_id === r.resource_id);
+        const reqUser = MOCK_USERS.find(u => u.uid === r.requester_id);
+        return doc?.department === hodDept || reqUser?.department === hodDept;
+      })
+    : requests;
+
+  const filtered = scopedRequests.filter(r => filter === 'all' || r.status === filter);
+  const pendingCount = scopedRequests.filter(r => r.status === 'pending').length;
 
   function approve(id: string) {
     const idx = MOCK_REQUESTS.findIndex(r => r.id === id);
     if (idx > -1) {
-      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'approved' };
+      const req = MOCK_REQUESTS[idx];
+      MOCK_REQUESTS[idx] = { ...req, status: 'approved', reviewed_by: user?.uid, reviewed_by_name: user?.name, reviewed_at: new Date().toISOString() };
       saveRequests();
+
+      // Grant permission automatically
+      MOCK_PERMISSIONS.unshift({
+        id: `perm_${Date.now()}`,
+        user_id: req.requester_id,
+        user_name: req.requester_name,
+        resource_id: req.resource_id,
+        resource_title: req.resource_title,
+        resource_type: req.resource_type,
+        level: (req.permission.charAt(0).toUpperCase() + req.permission.slice(1)) as any,
+        source: 'Direct',
+        granted_by: user?.uid ?? 'usr_admin_001',
+        granted_by_name: user?.name ?? 'Admin',
+        granted_on: new Date().toISOString(),
+        status: 'active',
+      });
+      savePermissions();
     }
     setRequests([...MOCK_REQUESTS]);
   }
@@ -25,17 +56,17 @@ export default function AccessRequestsAdminPage() {
   function reject(id: string) {
     const idx = MOCK_REQUESTS.findIndex(r => r.id === id);
     if (idx > -1) {
-      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'rejected' };
+      MOCK_REQUESTS[idx] = { ...MOCK_REQUESTS[idx], status: 'rejected', reviewed_by: user?.uid, reviewed_by_name: user?.name, reviewed_at: new Date().toISOString() };
       saveRequests();
     }
     setRequests([...MOCK_REQUESTS]);
   }
 
   const stats = [
-    { label: 'Total',    val: requests.length,                                   icon: Inbox,       color: 'text-text-muted' },
-    { label: 'Pending',  val: pendingCount,                                       icon: Clock,       color: 'text-warning' },
-    { label: 'Approved', val: requests.filter(r => r.status === 'approved').length, icon: CheckCircle, color: 'text-success' },
-    { label: 'Rejected', val: requests.filter(r => r.status === 'rejected').length, icon: XCircle,    color: 'text-danger' },
+    { label: 'Total',    val: scopedRequests.length,                                   icon: Inbox,       color: 'text-text-muted' },
+    { label: 'Pending',  val: pendingCount,                                             icon: Clock,       color: 'text-warning' },
+    { label: 'Approved', val: scopedRequests.filter(r => r.status === 'approved').length, icon: CheckCircle, color: 'text-success' },
+    { label: 'Rejected', val: scopedRequests.filter(r => r.status === 'rejected').length, icon: XCircle,    color: 'text-danger' },
   ];
 
   return (

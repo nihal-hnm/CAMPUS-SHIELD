@@ -4,13 +4,15 @@ import { Button } from '../../components/ui/Button';
 import { StatusBadge, ClassificationBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/feedback/States';
 import { MOCK_USERS, MOCK_DOCUMENTS, MOCK_PERMISSIONS, savePermissions } from '../../mocks/data';
+import { useAuth } from '../../context/AuthContext';
 import type { Permission, PermissionLevel } from '../../types/permission';
 import { formatDate, formatCountdown } from '../../utils/format';
 
 const LEVELS: PermissionLevel[] = ['View', 'Download', 'Share', 'Edit'];
 
 // ── Grant Permission Modal ────────────────────────────────────────────────────
-function GrantModal({ onClose, onGrant }: { onClose: () => void; onGrant: (p: Permission) => void }) {
+function GrantModal({ onClose, onGrant, hodDept }: { onClose: () => void; onGrant: (p: Permission) => void; hodDept?: string }) {
+  const { user } = useAuth();
   const [userId, setUserId] = useState('');
   const [docId, setDocId] = useState('');
   const [level, setLevel] = useState<PermissionLevel>('View');
@@ -19,13 +21,15 @@ function GrantModal({ onClose, onGrant }: { onClose: () => void; onGrant: (p: Pe
   const [docSearch, setDocSearch] = useState('');
 
   const filteredUsers = MOCK_USERS.filter(u =>
-    u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+    (!hodDept || u.department === hodDept) &&
+    (u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
     u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-    u.role.toLowerCase().includes(userSearch.toLowerCase())
+    u.role.toLowerCase().includes(userSearch.toLowerCase()))
   );
   const filteredDocs = MOCK_DOCUMENTS.filter(d =>
-    d.title.toLowerCase().includes(docSearch.toLowerCase()) ||
-    d.department.toLowerCase().includes(docSearch.toLowerCase())
+    (!hodDept || d.department === hodDept) &&
+    (d.title.toLowerCase().includes(docSearch.toLowerCase()) ||
+    d.department.toLowerCase().includes(docSearch.toLowerCase()))
   );
 
   const selectedUser = MOCK_USERS.find(u => u.uid === userId);
@@ -42,8 +46,8 @@ function GrantModal({ onClose, onGrant }: { onClose: () => void; onGrant: (p: Pe
       resource_type: 'document',
       level,
       source: 'Direct',
-      granted_by: 'usr_admin_001',
-      granted_by_name: 'Principal Kumar',
+      granted_by: user?.uid ?? 'usr_admin_001',
+      granted_by_name: user?.name ?? 'Admin',
       granted_on: new Date().toISOString(),
       expires_at: expires ? new Date(expires).toISOString() : undefined,
       status: 'active',
@@ -149,6 +153,10 @@ function GrantModal({ onClose, onGrant }: { onClose: () => void; onGrant: (p: Pe
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function PermissionMgmtPage() {
+  const { user } = useAuth();
+  const isHod = user?.role === 'dept_admin';
+  const hodDept = user?.department;
+
   const [permissions, setPermissions] = useState<Permission[]>(MOCK_PERMISSIONS);
   const [showGrant, setShowGrant] = useState(false);
   const [search, setSearch] = useState('');
@@ -159,6 +167,13 @@ export default function PermissionMgmtPage() {
 
   const filtered = useMemo(() => {
     let list = permissions;
+    if (isHod && hodDept) {
+      list = list.filter(p => {
+        const doc = MOCK_DOCUMENTS.find(d => d.document_id === p.resource_id);
+        const targetUser = MOCK_USERS.find(u => u.uid === p.user_id);
+        return doc?.department === hodDept || targetUser?.department === hodDept;
+      });
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(p =>
@@ -210,7 +225,7 @@ export default function PermissionMgmtPage() {
 
   return (
     <div className="space-y-5">
-      {showGrant && <GrantModal onClose={() => setShowGrant(false)} onGrant={handleGrant} />}
+      {showGrant && <GrantModal onClose={() => setShowGrant(false)} onGrant={handleGrant} hodDept={isHod ? hodDept : undefined} />}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

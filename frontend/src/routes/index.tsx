@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
-import { createBrowserRouter, RouterProvider, Outlet, useNavigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useNavigate, useRouteError } from 'react-router-dom';
 import { RequireAuth, RequireRole, RoleRedirect } from './Guards';
 import { UserLayout, AdminLayout } from '../layouts/Layouts';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,47 @@ import { useReauthRequired } from '../hooks/useSession';
 import { SessionExpiryModal } from '../components/security/SessionExpiryModal';
 import { getLastActivity } from '../services/apiClient';
 
+// Retry wrapper for lazy-loaded chunks after new Vercel deployments
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(() =>
+    factory().catch((err) => {
+      const key = 'cv_chunk_retry';
+      const hasRetried = sessionStorage.getItem(key);
+      if (!hasRetried) {
+        sessionStorage.setItem(key, '1');
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      sessionStorage.removeItem(key);
+      throw err;
+    })
+  );
+}
+
+function RouteErrorBoundary() {
+  const err = useRouteError() as any;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+      <div className="max-w-md w-full card p-8 text-center space-y-4">
+        <h1 className="text-xl font-semibold text-text">Something went wrong</h1>
+        <p className="text-sm text-text-muted">
+          {err?.message?.includes('dynamically imported module')
+            ? 'A new version of CampusShield was deployed. Please reload the page.'
+            : (err?.message || 'An unexpected error occurred.')}
+        </p>
+        <button
+          onClick={() => { sessionStorage.removeItem('cv_chunk_retry'); window.location.reload(); }}
+          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
+        >
+          Reload Page
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Auth pages
 import LoginPage from '../pages/auth/LoginPage';
 import ReauthPage from '../pages/auth/ReauthPage';
@@ -15,29 +56,29 @@ import SessionExpiredPage from '../pages/auth/SessionExpiredPage';
 import LoggedInElsewherePage from '../pages/auth/LoggedInElsewherePage';
 
 // User pages
-const UserDashboardPage     = lazy(() => import('../pages/user/DashboardPage'));
-const DocumentLibraryPage   = lazy(() => import('../pages/user/LibraryPage'));
-const DocumentViewerPage    = lazy(() => import('../pages/user/ViewerPage'));
-const MyPermissionsPage     = lazy(() => import('../pages/user/PermissionsPage'));
-const AccessRequestsPage    = lazy(() => import('../pages/user/RequestsPage'));
-const NotificationsPage     = lazy(() => import('../pages/user/NotificationsPage'));
-const ProfilePage           = lazy(() => import('../pages/user/ProfilePage'));
-const DeptActivityPage      = lazy(() => import('../pages/user/DeptActivityPage'));
+const UserDashboardPage     = lazyWithRetry(() => import('../pages/user/DashboardPage'));
+const DocumentLibraryPage   = lazyWithRetry(() => import('../pages/user/LibraryPage'));
+const DocumentViewerPage    = lazyWithRetry(() => import('../pages/user/ViewerPage'));
+const MyPermissionsPage     = lazyWithRetry(() => import('../pages/user/PermissionsPage'));
+const AccessRequestsPage    = lazyWithRetry(() => import('../pages/user/RequestsPage'));
+const NotificationsPage     = lazyWithRetry(() => import('../pages/user/NotificationsPage'));
+const ProfilePage           = lazyWithRetry(() => import('../pages/user/ProfilePage'));
+const DeptActivityPage      = lazyWithRetry(() => import('../pages/user/DeptActivityPage'));
 
-// Admin pages
-const AdminDashboardPage      = lazy(() => import('../pages/admin/AdminDashboardPage'));
-const UserManagementPage      = lazy(() => import('../pages/admin/UserManagementPage'));
-const DepartmentMgmtPage      = lazy(() => import('../pages/admin/DepartmentMgmtPage'));
-const RoleManagementPage      = lazy(() => import('../pages/admin/RoleManagementPage'));
-const TagManagementPage       = lazy(() => import('../pages/admin/TagManagementPage'));
-const DocumentMgmtPage        = lazy(() => import('../pages/admin/DocumentMgmtPage'));
-const PermissionMgmtPage      = lazy(() => import('../pages/admin/PermissionMgmtPage'));
-const AccessRequestsAdminPage = lazy(() => import('../pages/admin/AccessRequestsAdminPage'));
-const MagicLinksPage          = lazy(() => import('../pages/admin/MagicLinksPage'));
-const SessionMgmtPage         = lazy(() => import('../pages/admin/SessionMgmtPage'));
-const EmergencyPage           = lazy(() => import('../pages/admin/EmergencyPage'));
-const SecurityMonitoringPage  = lazy(() => import('../pages/admin/SecurityMonitoringPage'));
-const AuditLogsPage           = lazy(() => import('../pages/admin/AuditLogsPage'));
+// Admin & HOD shared management pages
+const AdminDashboardPage      = lazyWithRetry(() => import('../pages/admin/AdminDashboardPage'));
+const UserManagementPage      = lazyWithRetry(() => import('../pages/admin/UserManagementPage'));
+const DepartmentMgmtPage      = lazyWithRetry(() => import('../pages/admin/DepartmentMgmtPage'));
+const RoleManagementPage      = lazyWithRetry(() => import('../pages/admin/RoleManagementPage'));
+const TagManagementPage       = lazyWithRetry(() => import('../pages/admin/TagManagementPage'));
+const DocumentMgmtPage        = lazyWithRetry(() => import('../pages/admin/DocumentMgmtPage'));
+const PermissionMgmtPage      = lazyWithRetry(() => import('../pages/admin/PermissionMgmtPage'));
+const AccessRequestsAdminPage = lazyWithRetry(() => import('../pages/admin/AccessRequestsAdminPage'));
+const MagicLinksPage          = lazyWithRetry(() => import('../pages/admin/MagicLinksPage'));
+const SessionMgmtPage         = lazyWithRetry(() => import('../pages/admin/SessionMgmtPage'));
+const EmergencyPage           = lazyWithRetry(() => import('../pages/admin/EmergencyPage'));
+const SecurityMonitoringPage  = lazyWithRetry(() => import('../pages/admin/SecurityMonitoringPage'));
+const AuditLogsPage           = lazyWithRetry(() => import('../pages/admin/AuditLogsPage'));
 
 const Loading = () => (
   <div className="flex items-center justify-center py-20">
@@ -52,12 +93,10 @@ function SessionEnforcer({ children }: { children: React.ReactNode }) {
   const reauthRequired = useReauthRequired(signinTime);
   const [idleSecs, setIdleSecs] = useState(600);
 
-  // Redirect to "logged in elsewhere" page if session was stolen
   useEffect(() => {
     if (loggedInElsewhere) navigate('/logged-in-elsewhere');
   }, [loggedInElsewhere, navigate]);
 
-  // Countdown ticker — updates every second
   useEffect(() => {
     const id = setInterval(() => {
       const remaining = Math.max(0, 600 - Math.floor((Date.now() - getLastActivity()) / 1000));
@@ -114,15 +153,16 @@ function AdminLayoutWrapper() {
 }
 
 const router = createBrowserRouter([
-  { path: '/login',               element: <LoginPage /> },
-  { path: '/reauth',              element: <ReauthPage /> },
-  { path: '/session-expired',     element: <SessionExpiredPage /> },
-  { path: '/logged-in-elsewhere', element: <LoggedInElsewherePage /> },
-  { path: '/',                    element: <RequireAuth><RoleRedirect /></RequireAuth> },
+  { path: '/login',               element: <LoginPage />, errorElement: <RouteErrorBoundary /> },
+  { path: '/reauth',              element: <ReauthPage />, errorElement: <RouteErrorBoundary /> },
+  { path: '/session-expired',     element: <SessionExpiredPage />, errorElement: <RouteErrorBoundary /> },
+  { path: '/logged-in-elsewhere', element: <LoggedInElsewherePage />, errorElement: <RouteErrorBoundary /> },
+  { path: '/',                    element: <RequireAuth><RoleRedirect /></RequireAuth>, errorElement: <RouteErrorBoundary /> },
 
-  // User portal
+  // User & HOD portal
   {
     element: <UserLayoutWrapper />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { path: '/dashboard',            element: <Suspense fallback={<Loading />}><UserDashboardPage /></Suspense> },
       { path: '/library',              element: <Suspense fallback={<Loading />}><DocumentLibraryPage /></Suspense> },
@@ -132,6 +172,12 @@ const router = createBrowserRouter([
       { path: '/notifications',        element: <Suspense fallback={<Loading />}><NotificationsPage /></Suspense> },
       { path: '/profile',              element: <Suspense fallback={<Loading />}><ProfilePage /></Suspense> },
       { path: '/department/activity',  element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DeptActivityPage /></RequireRole></Suspense> },
+      // H.O.D Department-Scoped Management Routes
+      { path: '/hod/department',       element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DepartmentMgmtPage /></RequireRole></Suspense> },
+      { path: '/hod/documents',        element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DocumentMgmtPage /></RequireRole></Suspense> },
+      { path: '/hod/permissions',      element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><PermissionMgmtPage /></RequireRole></Suspense> },
+      { path: '/hod/magic-links',      element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><MagicLinksPage /></RequireRole></Suspense> },
+      { path: '/hod/requests',         element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><AccessRequestsAdminPage /></RequireRole></Suspense> },
     ],
   },
 
@@ -139,6 +185,7 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminLayoutWrapper />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true,              element: <Suspense fallback={<Loading />}><AdminDashboardPage /></Suspense> },
       { path: 'users',            element: <Suspense fallback={<Loading />}><UserManagementPage /></Suspense> },
