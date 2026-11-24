@@ -8,28 +8,28 @@ import { formatRelative, formatBytes } from '../../utils/format';
 import type { Document, Classification, DocumentCategory } from '../../types/document';
 
 const CLASSIFICATIONS: Classification[] = ['public', 'internal', 'restricted', 'confidential'];
-const CATEGORIES: DocumentCategory[]    = ['exam_paper', 'circular', 'syllabus', 'financial', 'research', 'general'];
+const CATEGORIES: DocumentCategory[] = ['exam_paper', 'circular', 'syllabus', 'financial', 'research', 'general'];
 const DEPTS = MOCK_DEPARTMENTS.map(d => d.code);
 
 // ── Upload Modal ──────────────────────────────────────────────────────────────
 function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; onUpload: (doc: Document) => void; fixedDept?: string }) {
   const { user } = useAuth();
-  const [title, setTitle]           = useState('');
-  const [dept, setDept]             = useState(fixedDept ?? '');
-  const [subject, setSubject]       = useState('');
-  const [category, setCategory]     = useState<DocumentCategory>('general');
+  const [title, setTitle] = useState('');
+  const [dept, setDept] = useState(fixedDept ?? '');
+  const [subject, setSubject] = useState('');
+  const [category, setCategory] = useState<DocumentCategory>('general');
   const [classification, setClassification] = useState<Classification>('internal');
-  const [file, setFile]             = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [accessNote, setAccessNote] = useState('');
-  const [error, setError]           = useState('');
+  const [error, setError] = useState('');
 
   // Which subjects does the selected dept have?
   const deptObj = MOCK_DEPARTMENTS.find(d => d.code === dept);
 
   function validate() {
-    if (!title.trim())  return 'Title is required.';
-    if (!dept)          return 'Department is required.';
-    if (!file)          return 'Please select a file to upload.';
+    if (!title.trim()) return 'Title is required.';
+    if (!dept) return 'Department is required.';
+    if (!file) return 'Please select a file to upload.';
     return '';
   }
 
@@ -190,7 +190,8 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
 export default function DocumentMgmtPage() {
   const { user } = useAuth();
   const isHod = user?.role === 'dept_admin';
-  const hodDept = user?.department;
+  const isFaculty = user?.role === 'faculty';
+  const scopedDept = (isHod || isFaculty) ? user?.department : undefined;
 
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [showUpload, setShowUpload] = useState(false);
@@ -200,14 +201,15 @@ export default function DocumentMgmtPage() {
 
   const filtered = useMemo(() => {
     return documents.filter(d => {
-      if (isHod && d.department !== hodDept) return false;
+      if (scopedDept && d.department !== scopedDept) return false;
+      if (isFaculty && user?.assigned_subjects?.length && d.subject_id && !user.assigned_subjects.includes(d.subject_id) && d.uploaded_by !== user.uid) return false;
       const q = search.toLowerCase();
       const matchSearch = !search || d.title.toLowerCase().includes(q) || d.department.toLowerCase().includes(q) || (d.subject_id ?? '').toLowerCase().includes(q) || (d.uploader_name ?? '').toLowerCase().includes(q);
-      const matchDept  = !filterDept  || d.department === filterDept;
+      const matchDept = !filterDept || d.department === filterDept;
       const matchClass = !filterClass || d.classification === filterClass;
       return matchSearch && matchDept && matchClass;
     });
-  }, [documents, search, filterDept, filterClass, isHod, hodDept]);
+  }, [documents, search, filterDept, filterClass, scopedDept, isFaculty, user?.assigned_subjects, user?.uid]);
 
   function toggleLock(id: string) {
     const idx = MOCK_DOCUMENTS.findIndex(d => d.document_id === id);
@@ -235,7 +237,7 @@ export default function DocumentMgmtPage() {
 
   return (
     <div className="space-y-5">
-      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} fixedDept={isHod ? hodDept : undefined} />}
+      {showUpload && <UploadModal onClose={() => setShowUpload(false)} onUpload={handleUpload} fixedDept={scopedDept} />}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -272,7 +274,7 @@ export default function DocumentMgmtPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {(['public','internal','restricted','confidential'] as Classification[]).map(c => {
+        {(['public', 'internal', 'restricted', 'confidential'] as Classification[]).map(c => {
           const count = documents.filter(d => d.classification === c).length;
           return (
             <div key={c} className="card p-3 text-center">
@@ -313,10 +315,10 @@ export default function DocumentMgmtPage() {
                 <td className="px-4 py-3 text-xs text-text-muted">{formatRelative(doc.created_at)}</td>
                 <td className="px-4 py-3">
                   {doc.emergency_locked
-                    ? <StatusBadge variant="danger"  label="Locked" />
+                    ? <StatusBadge variant="danger" label="Locked" />
                     : doc.status === 'archived'
-                    ? <StatusBadge variant="neutral" label="Archived" />
-                    : <StatusBadge variant="success" label="Active" />
+                      ? <StatusBadge variant="neutral" label="Archived" />
+                      : <StatusBadge variant="success" label="Active" />
                   }
                 </td>
                 <td className="px-4 py-3">

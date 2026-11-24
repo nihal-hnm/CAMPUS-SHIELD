@@ -13,6 +13,7 @@ const LS_DOCS  = 'cv_docs_v1';
 const LS_PERMS = 'cv_perms_v1';
 const LS_REQS  = 'cv_reqs_v1';
 const LS_DEPTS = 'cv_depts_v1';
+const LS_ASSIGNS = 'cv_assigns_v1';
 
 function lsGet<T>(key: string): T | null {
   try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as T) : null; } catch { return null; }
@@ -127,6 +128,32 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [];
 export let MOCK_REQUESTS: AccessRequest[] = lsGet<AccessRequest[]>(LS_REQS) ?? [];
 
 export function saveRequests(): void { lsSet(LS_REQS, MOCK_REQUESTS); }
+
+// ── Student Assignment Submissions & Grades (persisted) ───────────────────────
+export interface AssignmentSubmission {
+  id: string;
+  title: string;
+  subject: string;
+  department: string;
+  student_uid: string;
+  student_name: string;
+  student_roll?: string;
+  file_name: string;
+  file_size: number;
+  file_type: string;
+  notes?: string;
+  submitted_at: string;
+  grade?: string;
+  feedback?: string;
+  graded_by?: string;
+  graded_by_name?: string;
+  graded_at?: string;
+  status: 'submitted' | 'graded';
+}
+
+export let MOCK_ASSIGNMENTS: AssignmentSubmission[] = lsGet<AssignmentSubmission[]>(LS_ASSIGNS) ?? [];
+
+export function saveAssignments(): void { lsSet(LS_ASSIGNS, MOCK_ASSIGNMENTS); }
 
 // ── Magic Links ────────────────────────────────────────────────────────────────
 export interface MagicLink {

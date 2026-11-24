@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Files, Users, Building2, Shield, Tag, KeyRound,
   Inbox, MonitorSmartphone, OctagonAlert, Activity, History,
-  Link2, ChevronLeft, ChevronRight, LogOut, User, X
+  Link2, ChevronLeft, ChevronRight, LogOut, User, X, Upload, Award
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
@@ -45,11 +45,23 @@ function adminNav(): NavGroup[] {
 function userNav(role: Role): NavGroup[] {
   const items: NavItem[] = [{ label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard }];
   items.push({ label: 'Document Library', to: '/library', icon: Files });
+  if (role === 'student') {
+    items.push({ label: 'My Assignments', to: '/assignments', icon: Upload });
+  }
   items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
   items.push({ label: 'Access Requests', to: '/requests', icon: Inbox });
   items.push({ label: 'Profile', to: '/profile', icon: User });
 
   const groups: NavGroup[] = [{ group: 'Navigation', items }];
+  if (role === 'faculty') {
+    groups.push({
+      group: 'Faculty Controls',
+      items: [
+        { label: 'Upload & Docs',        to: '/faculty/documents', icon: Files },
+        { label: 'Submissions & Grades', to: '/faculty/grades',    icon: Award },
+      ],
+    });
+  }
   if (role === 'dept_admin') {
     groups.push({
       group: 'H.O.D Controls',
@@ -59,6 +71,7 @@ function userNav(role: Role): NavGroup[] {
         { label: 'Grant Permissions', to: '/hod/permissions',  icon: KeyRound },
         { label: 'Magic Links',       to: '/hod/magic-links',  icon: Link2 },
         { label: 'Approve Requests',  to: '/hod/requests',     icon: Inbox },
+        { label: 'Submissions & Grades', to: '/faculty/grades', icon: Award },
         { label: 'Dept Activity',     to: '/department/activity', icon: Activity },
       ],
     });

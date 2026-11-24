@@ -64,6 +64,8 @@ const AccessRequestsPage    = lazyWithRetry(() => import('../pages/user/Requests
 const NotificationsPage     = lazyWithRetry(() => import('../pages/user/NotificationsPage'));
 const ProfilePage           = lazyWithRetry(() => import('../pages/user/ProfilePage'));
 const DeptActivityPage      = lazyWithRetry(() => import('../pages/user/DeptActivityPage'));
+const AssignmentsPage       = lazyWithRetry(() => import('../pages/user/AssignmentsPage'));
+const FacultyGradingPage    = lazyWithRetry(() => import('../pages/user/FacultyGradingPage'));
 
 // Admin & HOD shared management pages
 const AdminDashboardPage      = lazyWithRetry(() => import('../pages/admin/AdminDashboardPage'));
@@ -171,6 +173,9 @@ const router = createBrowserRouter([
       { path: '/requests',             element: <Suspense fallback={<Loading />}><AccessRequestsPage /></Suspense> },
       { path: '/notifications',        element: <Suspense fallback={<Loading />}><NotificationsPage /></Suspense> },
       { path: '/profile',              element: <Suspense fallback={<Loading />}><ProfilePage /></Suspense> },
+      { path: '/assignments',          element: <Suspense fallback={<Loading />}><RequireRole roles={['student']}><AssignmentsPage /></RequireRole></Suspense> },
+      { path: '/faculty/documents',    element: <Suspense fallback={<Loading />}><RequireRole roles={['faculty']}><DocumentMgmtPage /></RequireRole></Suspense> },
+      { path: '/faculty/grades',       element: <Suspense fallback={<Loading />}><RequireRole roles={['faculty', 'dept_admin']}><FacultyGradingPage /></RequireRole></Suspense> },
       { path: '/department/activity',  element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DeptActivityPage /></RequireRole></Suspense> },
       // H.O.D Department-Scoped Management Routes
       { path: '/hod/department',       element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DepartmentMgmtPage /></RequireRole></Suspense> },
