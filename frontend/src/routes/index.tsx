@@ -1,11 +1,10 @@
 import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useNavigate } from 'react-router-dom';
 import { RequireAuth, RequireRole, RoleRedirect } from './Guards';
 import { UserLayout, AdminLayout } from '../layouts/Layouts';
 import { useAuth } from '../context/AuthContext';
 import { useIdleTimer } from '../hooks/useIdleTimer';
 import { useReauthRequired } from '../hooks/useSession';
-import { useNavigate } from 'react-router-dom';
 import { SessionExpiryModal } from '../components/security/SessionExpiryModal';
 import { getLastActivity } from '../services/apiClient';
 
@@ -13,6 +12,7 @@ import { getLastActivity } from '../services/apiClient';
 import LoginPage from '../pages/auth/LoginPage';
 import ReauthPage from '../pages/auth/ReauthPage';
 import SessionExpiredPage from '../pages/auth/SessionExpiredPage';
+import LoggedInElsewherePage from '../pages/auth/LoggedInElsewherePage';
 
 // User pages
 const UserDashboardPage     = lazy(() => import('../pages/user/DashboardPage'));
@@ -25,21 +25,19 @@ const ProfilePage           = lazy(() => import('../pages/user/ProfilePage'));
 const DeptActivityPage      = lazy(() => import('../pages/user/DeptActivityPage'));
 
 // Admin pages
-const AdminDashboardPage    = lazy(() => import('../pages/admin/AdminDashboardPage'));
-const UserManagementPage    = lazy(() => import('../pages/admin/UserManagementPage'));
-const DepartmentMgmtPage    = lazy(() => import('../pages/admin/DepartmentMgmtPage'));
-const RoleManagementPage    = lazy(() => import('../pages/admin/RoleManagementPage'));
-const TagManagementPage     = lazy(() => import('../pages/admin/TagManagementPage'));
-const DocumentMgmtPage      = lazy(() => import('../pages/admin/DocumentMgmtPage'));
-const PermissionMgmtPage    = lazy(() => import('../pages/admin/PermissionMgmtPage'));
-const PolicyMgmtPage        = lazy(() => import('../pages/admin/PolicyMgmtPage'));
+const AdminDashboardPage      = lazy(() => import('../pages/admin/AdminDashboardPage'));
+const UserManagementPage      = lazy(() => import('../pages/admin/UserManagementPage'));
+const DepartmentMgmtPage      = lazy(() => import('../pages/admin/DepartmentMgmtPage'));
+const RoleManagementPage      = lazy(() => import('../pages/admin/RoleManagementPage'));
+const TagManagementPage       = lazy(() => import('../pages/admin/TagManagementPage'));
+const DocumentMgmtPage        = lazy(() => import('../pages/admin/DocumentMgmtPage'));
+const PermissionMgmtPage      = lazy(() => import('../pages/admin/PermissionMgmtPage'));
 const AccessRequestsAdminPage = lazy(() => import('../pages/admin/AccessRequestsAdminPage'));
-const SessionMgmtPage       = lazy(() => import('../pages/admin/SessionMgmtPage'));
-const EmergencyPage         = lazy(() => import('../pages/admin/EmergencyPage'));
-const SecurityMonitoringPage = lazy(() => import('../pages/admin/SecurityMonitoringPage'));
-const SimulatorPage         = lazy(() => import('../pages/admin/SimulatorPage'));
-const AuditLogsPage         = lazy(() => import('../pages/admin/AuditLogsPage'));
-const SystemSettingsPage    = lazy(() => import('../pages/admin/SystemSettingsPage'));
+const MagicLinksPage          = lazy(() => import('../pages/admin/MagicLinksPage'));
+const SessionMgmtPage         = lazy(() => import('../pages/admin/SessionMgmtPage'));
+const EmergencyPage           = lazy(() => import('../pages/admin/EmergencyPage'));
+const SecurityMonitoringPage  = lazy(() => import('../pages/admin/SecurityMonitoringPage'));
+const AuditLogsPage           = lazy(() => import('../pages/admin/AuditLogsPage'));
 
 const Loading = () => (
   <div className="flex items-center justify-center py-20">
@@ -49,10 +47,15 @@ const Loading = () => (
 
 // Session-enforcing wrapper
 function SessionEnforcer({ children }: { children: React.ReactNode }) {
-  const { user, logout, signinTime } = useAuth();
+  const { user, logout, signinTime, loggedInElsewhere } = useAuth();
   const navigate = useNavigate();
   const reauthRequired = useReauthRequired(signinTime);
   const [idleSecs, setIdleSecs] = useState(600);
+
+  // Redirect to "logged in elsewhere" page if session was stolen
+  useEffect(() => {
+    if (loggedInElsewhere) navigate('/logged-in-elsewhere');
+  }, [loggedInElsewhere, navigate]);
 
   // Countdown ticker — updates every second
   useEffect(() => {
@@ -64,7 +67,6 @@ function SessionEnforcer({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleStaySignedIn = useCallback(() => {
-    // Touching the activity timestamp resets the idle timer
     document.dispatchEvent(new MouseEvent('mousemove'));
     setIdleSecs(600);
   }, []);
@@ -102,7 +104,7 @@ function UserLayoutWrapper() {
 function AdminLayoutWrapper() {
   return (
     <RequireAuth>
-      <RequireRole roles={['super_admin']}>
+      <RequireRole roles={['super_admin', 'ultra_admin'] as any}>
         <SessionEnforcer>
           <AdminLayout><Outlet /></AdminLayout>
         </SessionEnforcer>
@@ -112,10 +114,11 @@ function AdminLayoutWrapper() {
 }
 
 const router = createBrowserRouter([
-  { path: '/login',           element: <LoginPage /> },
-  { path: '/reauth',          element: <ReauthPage /> },
-  { path: '/session-expired', element: <SessionExpiredPage /> },
-  { path: '/',                element: <RequireAuth><RoleRedirect /></RequireAuth> },
+  { path: '/login',               element: <LoginPage /> },
+  { path: '/reauth',              element: <ReauthPage /> },
+  { path: '/session-expired',     element: <SessionExpiredPage /> },
+  { path: '/logged-in-elsewhere', element: <LoggedInElsewherePage /> },
+  { path: '/',                    element: <RequireAuth><RoleRedirect /></RequireAuth> },
 
   // User portal
   {
@@ -137,21 +140,19 @@ const router = createBrowserRouter([
     path: '/admin',
     element: <AdminLayoutWrapper />,
     children: [
-      { index: true,                   element: <Suspense fallback={<Loading />}><AdminDashboardPage /></Suspense> },
-      { path: 'users',                 element: <Suspense fallback={<Loading />}><UserManagementPage /></Suspense> },
-      { path: 'departments',           element: <Suspense fallback={<Loading />}><DepartmentMgmtPage /></Suspense> },
-      { path: 'roles',                 element: <Suspense fallback={<Loading />}><RoleManagementPage /></Suspense> },
-      { path: 'tags',                  element: <Suspense fallback={<Loading />}><TagManagementPage /></Suspense> },
-      { path: 'documents',             element: <Suspense fallback={<Loading />}><DocumentMgmtPage /></Suspense> },
-      { path: 'permissions',           element: <Suspense fallback={<Loading />}><PermissionMgmtPage /></Suspense> },
-      { path: 'policies',              element: <Suspense fallback={<Loading />}><PolicyMgmtPage /></Suspense> },
-      { path: 'requests',              element: <Suspense fallback={<Loading />}><AccessRequestsAdminPage /></Suspense> },
-      { path: 'sessions',              element: <Suspense fallback={<Loading />}><SessionMgmtPage /></Suspense> },
-      { path: 'emergency',             element: <Suspense fallback={<Loading />}><EmergencyPage /></Suspense> },
-      { path: 'security',              element: <Suspense fallback={<Loading />}><SecurityMonitoringPage /></Suspense> },
-      { path: 'simulator',             element: <Suspense fallback={<Loading />}><SimulatorPage /></Suspense> },
-      { path: 'audit',                 element: <Suspense fallback={<Loading />}><AuditLogsPage /></Suspense> },
-      { path: 'settings',              element: <Suspense fallback={<Loading />}><SystemSettingsPage /></Suspense> },
+      { index: true,              element: <Suspense fallback={<Loading />}><AdminDashboardPage /></Suspense> },
+      { path: 'users',            element: <Suspense fallback={<Loading />}><UserManagementPage /></Suspense> },
+      { path: 'departments',      element: <Suspense fallback={<Loading />}><DepartmentMgmtPage /></Suspense> },
+      { path: 'roles',            element: <Suspense fallback={<Loading />}><RoleManagementPage /></Suspense> },
+      { path: 'tags',             element: <Suspense fallback={<Loading />}><TagManagementPage /></Suspense> },
+      { path: 'documents',        element: <Suspense fallback={<Loading />}><DocumentMgmtPage /></Suspense> },
+      { path: 'permissions',      element: <Suspense fallback={<Loading />}><PermissionMgmtPage /></Suspense> },
+      { path: 'magic-links',      element: <Suspense fallback={<Loading />}><MagicLinksPage /></Suspense> },
+      { path: 'requests',         element: <Suspense fallback={<Loading />}><AccessRequestsAdminPage /></Suspense> },
+      { path: 'sessions',         element: <Suspense fallback={<Loading />}><SessionMgmtPage /></Suspense> },
+      { path: 'emergency',        element: <Suspense fallback={<Loading />}><EmergencyPage /></Suspense> },
+      { path: 'security',         element: <Suspense fallback={<Loading />}><SecurityMonitoringPage /></Suspense> },
+      { path: 'audit',            element: <Suspense fallback={<Loading />}><AuditLogsPage /></Suspense> },
     ],
   },
 

@@ -38,7 +38,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 function mockLogin(email: string, password: string): User {
-  if (MOCK_CREDENTIALS[email] !== password) {
+  const cred = MOCK_CREDENTIALS[email];
+  if (!cred || cred.password !== password) {
     throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
   }
   const user = MOCK_USERS.find(u => u.email === email);
@@ -86,7 +87,7 @@ export async function logout(): Promise<void> {
 export async function reauth(password: string): Promise<void> {
   if (USE_MOCKS) {
     await new Promise(r => setTimeout(r, 600));
-    if (!_currentUser || MOCK_CREDENTIALS[_currentUser.email] !== password)
+    if (!_currentUser || MOCK_CREDENTIALS[_currentUser.email]?.password !== password)
       throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
     _signinTime = Date.now();
     return;

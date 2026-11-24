@@ -46,6 +46,6 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
 export function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'super_admin') return <Navigate to="/admin" replace />;
+  if (user.role === 'super_admin' || (user.role as string) === 'ultra_admin') return <Navigate to="/admin" replace />;
   return <Navigate to="/dashboard" replace />;
 }

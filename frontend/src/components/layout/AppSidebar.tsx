@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Files, Users, Building2, Shield, Tag, KeyRound, ScrollText,
-  Inbox, FlaskConical, MonitorSmartphone, OctagonAlert, Activity, History,
-  Settings, BookOpen, FileText, ChevronLeft, ChevronRight, LogOut, User, X, Menu
+  LayoutDashboard, Files, Users, Building2, Shield, Tag, KeyRound,
+  Inbox, MonitorSmartphone, OctagonAlert, Activity, History,
+  Link2, ChevronLeft, ChevronRight, LogOut, User, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
@@ -30,9 +30,8 @@ function adminNav(): NavGroup[] {
     { group: 'Content', items: [{ label: 'Documents', to: '/admin/documents', icon: Files }] },
     { group: 'Access Control', items: [
         { label: 'Permissions',   to: '/admin/permissions', icon: KeyRound },
-        { label: 'Policies',      to: '/admin/policies',    icon: ScrollText },
+        { label: 'Magic Links',   to: '/admin/magic-links', icon: Link2 },
         { label: 'Requests',      to: '/admin/requests',    icon: Inbox },
-        { label: 'Simulator',     to: '/admin/simulator',   icon: FlaskConical },
     ]},
     { group: 'Security', items: [
         { label: 'Sessions',      to: '/admin/sessions',    icon: MonitorSmartphone },
@@ -40,7 +39,6 @@ function adminNav(): NavGroup[] {
         { label: 'Monitoring',    to: '/admin/security',    icon: Activity },
         { label: 'Audit Logs',    to: '/admin/audit',       icon: History },
     ]},
-    { group: 'System', items: [{ label: 'Settings', to: '/admin/settings', icon: Settings }] },
   ];
 }
 
@@ -50,7 +48,6 @@ function userNav(role: Role): NavGroup[] {
   if (role === 'dept_admin') items.push({ label: 'Dept Activity', to: '/department/activity', icon: Activity });
   items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
   items.push({ label: 'Access Requests', to: '/requests', icon: Inbox });
-  items.push({ label: 'Notifications', to: '/notifications', icon: Inbox });
   items.push({ label: 'Profile', to: '/profile', icon: User });
   return [{ group: 'Navigation', items }];
 }
