@@ -14,6 +14,7 @@ const LS_PERMS = 'cv_perms_v1';
 const LS_REQS  = 'cv_reqs_v1';
 const LS_DEPTS = 'cv_depts_v1';
 const LS_ASSIGNS = 'cv_assigns_v1';
+const LS_ASSIGN_TASKS = 'cv_assign_tasks_v1';
 
 function lsGet<T>(key: string): T | null {
   try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as T) : null; } catch { return null; }
@@ -130,8 +131,25 @@ export let MOCK_REQUESTS: AccessRequest[] = lsGet<AccessRequest[]>(LS_REQS) ?? [
 export function saveRequests(): void { lsSet(LS_REQS, MOCK_REQUESTS); }
 
 // ── Student Assignment Submissions & Grades (persisted) ───────────────────────
+export interface AssignedTask {
+  id: string;
+  title: string;
+  problem_statement: string;
+  subject: string;
+  department: string;
+  due_date?: string;
+  assigned_by: string;
+  assigned_by_name: string;
+  created_at: string;
+}
+
+export let MOCK_ASSIGNMENT_TASKS: AssignedTask[] = lsGet<AssignedTask[]>(LS_ASSIGN_TASKS) ?? [];
+
+export function saveAssignmentTasks(): void { lsSet(LS_ASSIGN_TASKS, MOCK_ASSIGNMENT_TASKS); }
+
 export interface AssignmentSubmission {
   id: string;
+  task_id?: string;
   title: string;
   subject: string;
   department: string;
@@ -141,6 +159,7 @@ export interface AssignmentSubmission {
   file_name: string;
   file_size: number;
   file_type: string;
+  file_data_url?: string;
   notes?: string;
   submitted_at: string;
   grade?: string;
