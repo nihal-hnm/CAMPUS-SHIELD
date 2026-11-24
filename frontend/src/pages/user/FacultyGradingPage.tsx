@@ -421,7 +421,7 @@ export default function FacultyGradingPage() {
                     </td>
                     <td className="px-4 py-3">
                       {s.grade ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 font-semibold text-xs">{s.grade}</span>
+                        <span className="badge-success font-semibold">{s.grade}</span>
                       ) : (
                         <span className="text-xs text-text-muted">—</span>
                       )}

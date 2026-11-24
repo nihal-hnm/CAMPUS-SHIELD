@@ -23,7 +23,7 @@ export default {
         bg: '#F6F7F9',
         text: {
           DEFAULT: '#202938',
-          muted: '#64748B',
+          muted: '#526071',
           'on-navy': '#E2E8F0',
           'on-navy-muted': '#94A3B8',
         },

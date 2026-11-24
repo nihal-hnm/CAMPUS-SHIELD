@@ -120,7 +120,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         {groups.map(({ group, items }) => (
           <div key={group}>
             {!collapsed && (
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-text-on-navy-muted px-2 mb-1">{group}</p>
+              <p className="text-xs font-medium text-text-on-navy-muted px-2 mb-1">{group}</p>
             )}
             {items.map(({ label, to, icon: Icon, badge }) => (
               <NavLink
@@ -205,7 +205,7 @@ export function AppSidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col flex-shrink-0 transition-all duration-200',
+          'hidden lg:flex flex-col flex-shrink-0 transition-[width] duration-200',
           collapsed ? 'w-[72px]' : 'w-64'
         )}
       >

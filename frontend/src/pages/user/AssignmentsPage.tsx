@@ -273,7 +273,7 @@ export default function AssignmentsPage() {
                         <div className="flex items-center gap-2">
                           <StatusBadge variant={mySub.status === 'graded' ? 'success' : 'warning'} label={mySub.status} />
                           {mySub.grade && (
-                            <span className="text-xs font-semibold text-green-800 bg-green-100 px-2 py-0.5 rounded-full">
+                            <span className="badge-success font-semibold">
                               Grade: {mySub.grade}
                             </span>
                           )}
@@ -333,7 +333,7 @@ export default function AssignmentsPage() {
                   </td>
                   <td className="px-4 py-3">
                     {s.grade ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 font-semibold text-xs">
+                      <span className="badge-success font-semibold">
                         <CheckCircle className="w-3 h-3" /> {s.grade}
                       </span>
                     ) : (

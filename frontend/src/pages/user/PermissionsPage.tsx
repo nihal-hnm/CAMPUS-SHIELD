@@ -4,6 +4,7 @@ import { MOCK_PERMISSIONS } from '../../mocks/data';
 import { formatDate, formatCountdown } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 
 export default function MyPermissionsPage() {
   const perms = MOCK_PERMISSIONS;
@@ -16,8 +17,9 @@ export default function MyPermissionsPage() {
         </div>
         <Link to="/requests"><Button variant="primary" size="sm">Request Permission</Button></Link>
       </div>
-      <div className="card p-3 text-xs text-text-muted border-l-4 border-primary">
-        🔒 This view is informational only. The backend re-authorizes every request at access time.
+      <div className="card p-3 text-xs text-text-muted border-l-4 border-primary flex items-center gap-2">
+        <Lock className="w-3.5 h-3.5 text-primary flex-shrink-0" strokeWidth={1.5} />
+        <span>This view is informational only. The backend re-authorizes every request at access time.</span>
       </div>
       {perms.length === 0 ? (
         <EmptyState title="No direct permissions" description="Access through your role is applied automatically." />

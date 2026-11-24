@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import type { Role } from '../types/user';
 
@@ -32,8 +33,8 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
   if (!user || !roles.includes(user.role as string)) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-        <div className="w-14 h-14 rounded-full bg-danger-soft flex items-center justify-center">
-          <span className="text-2xl">🔒</span>
+        <div className="w-12 h-12 rounded-full bg-danger-soft flex items-center justify-center">
+          <Lock className="w-5 h-5 text-danger-dark" strokeWidth={1.5} />
         </div>
         <h2 className="text-lg font-semibold text-text">You don't have access to this page</h2>
         <p className="text-sm text-text-muted max-w-sm">

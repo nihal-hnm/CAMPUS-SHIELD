@@ -35,7 +35,7 @@ export function ErrorState({ message, code, onRetry }: ErrorStateProps) {
 
 export function SkeletonRow() {
   return (
-    <div className="flex gap-4 px-4 py-3 border-b border-border animate-pulse">
+    <div className="flex gap-4 px-4 py-3 border-b border-border">
       <div className="h-4 bg-neutral-soft rounded flex-1" />
       <div className="h-4 bg-neutral-soft rounded w-24" />
       <div className="h-4 bg-neutral-soft rounded w-20" />

@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap');
 
 @layer base {
   :root {
@@ -11,7 +11,7 @@
     --color-bg: #F6F7F9;
     --color-surface: #FFFFFF;
     --color-text: #202938;
-    --color-text-muted: #64748B;
+    --color-text-muted: #526071;
     --color-border: #E5E7EB;
     --color-success: #15803D;
     --color-warning: #D97706;

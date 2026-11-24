@@ -99,7 +99,7 @@ export default function EmergencyPage() {
                   <button
                     key={type}
                     onClick={() => { setTargetType(type); setTargetId(''); }}
-                    className={`card p-4 text-left transition-all ${targetType === type ? 'border-primary ring-1 ring-primary' : 'hover:border-primary/30'}`}
+                    className={`card p-4 text-left transition-colors ${targetType === type ? 'border-primary ring-1 ring-primary' : 'hover:border-primary/30'}`}
                   >
                     <Icon className={`w-5 h-5 mb-2 ${targetType === type ? 'text-primary' : 'text-text-muted'}`} />
                     <p className="text-sm font-medium text-text">{label}</p>

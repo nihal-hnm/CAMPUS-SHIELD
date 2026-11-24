@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link2, Copy, Clock, Shield, Trash2, Plus, X, ChevronDown, Check } from 'lucide-react';
+import { Link2, Copy, Clock, Shield, Trash2, Plus, X, ChevronDown, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { MOCK_DOCUMENTS, MOCK_MAGIC_LINKS, type MagicLink } from '../../mocks/data';
 import { useAuth } from '../../context/AuthContext';
@@ -120,8 +120,9 @@ export default function MagicLinksPage() {
               </div>
             </div>
           </div>
-          <div className="p-3 mt-3 rounded bg-bg border border-border text-xs text-text-muted">
-            <p>⚠️ This link grants <strong>view-only</strong> access to the document for anyone with the URL — no login required. It expires at <strong>{new Date(Date.now() + form.expires_minutes * 60000).toLocaleString()}</strong>.</p>
+          <div className="p-3 mt-3 rounded bg-bg border border-border text-xs text-text-muted flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-warning-dark flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+            <p>This link grants <strong>view-only</strong> access to the document for anyone with the URL — no login required. It expires at <strong>{new Date(Date.now() + form.expires_minutes * 60000).toLocaleString()}</strong>.</p>
           </div>
           <div className="flex gap-3 mt-4">
             <Button variant="secondary" size="sm" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -166,11 +167,11 @@ export default function MagicLinksPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        expired ? 'bg-red-100 text-red-700' :
-                        l.accessed ? 'bg-gray-100 text-gray-600' :
-                        'bg-green-100 text-green-700'
-                      }`}>
+                      <span className={
+                        expired ? 'badge-danger' :
+                        l.accessed ? 'badge-neutral' :
+                        'badge-success'
+                      }>
                         {expired ? 'Expired' : l.accessed ? 'Used' : 'Active'}
                       </span>
                     </td>

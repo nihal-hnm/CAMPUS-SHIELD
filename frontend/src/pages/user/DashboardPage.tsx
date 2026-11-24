@@ -13,7 +13,7 @@ function StatCard({ label, value, sub, icon: Icon, to }: { label: string; value:
       </div>
       <div>
         <p className="text-xs text-text-muted">{label}</p>
-        <p className="text-2xl font-semibold text-text">{value}</p>
+        <p className="text-2xl font-semibold text-text tabular-nums">{value}</p>
         {sub && <p className="text-xs text-text-muted mt-0.5">{sub}</p>}
       </div>
     </div>
@@ -33,7 +33,7 @@ export default function UserDashboardPage() {
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-semibold text-text">Dashboard</h1>
-        <p className="text-sm text-text-muted mt-1">Welcome back, {user?.name}. Here's what needs your attention.</p>
+        <p className="text-sm text-text-muted mt-1">{user?.department} · {user?.role?.replace('_', ' ')} workspace</p>
       </div>
 
       {/* Stat cards */}
