@@ -1,31 +1,33 @@
-import React, { type ReactNode } from 'react';
+import React from 'react';
 import { AppSidebar } from '../components/layout/AppSidebar';
 import { TopNavbar } from '../components/layout/TopNavbar';
+import { SidebarProvider } from '../context/SidebarContext';
 
-export function UserLayout({ children }: { children: ReactNode }) {
+function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
-      <AppSidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <TopNavbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-[1440px] mx-auto">
-            {children}
-          </div>
-        </main>
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden bg-bg">
+        {/* Sidebar */}
+        <AppSidebar />
+
+        {/* Main content */}
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <TopNavbar />
+          <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6">
+            <div className="max-w-[1440px] mx-auto">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
 
-export function AdminLayout({ children }: { children: ReactNode }) {
-  return <UserLayout>{children}</UserLayout>;
+export function UserLayout({ children }: { children: React.ReactNode }) {
+  return <AppLayout>{children}</AppLayout>;
 }
 
-export function AuthLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-      {children}
-    </div>
-  );
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <AppLayout>{children}</AppLayout>;
 }

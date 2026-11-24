@@ -34,8 +34,8 @@ export default function UserManagementPage() {
         <select className="input w-auto"><option>All Statuses</option></select>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-bg border-b border-border">
             <tr>
               {['Name / ID', 'Email', 'Role', 'Department', 'Tags', 'Status', 'Last Sign-in', 'Actions'].map(h => (

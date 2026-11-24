@@ -91,7 +91,7 @@ export default function LibraryPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-text">Document Library</h1>
           <p className="text-sm text-text-muted mt-0.5">
@@ -156,8 +156,8 @@ export default function LibraryPage() {
           description={search || filterClass ? 'Try adjusting your search or filters.' : 'No documents are accessible to your role.'}
         />
       ) : view === 'table' ? (
-        <div className="card overflow-hidden p-0">
-          <table className="w-full text-sm">
+        <div className="card overflow-hidden p-0 overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-border bg-bg">
                 <th className="px-5 py-3 text-left font-medium text-text-muted">Document</th>

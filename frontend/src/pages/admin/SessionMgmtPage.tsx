@@ -11,8 +11,8 @@ export default function SessionMgmtPage() {
         <div><h1 className="text-2xl font-semibold text-text">Session Management</h1><p className="text-sm text-text-muted mt-1">View and terminate active user sessions.</p></div>
         <Button variant="danger" size="sm">Terminate All Sessions</Button>
       </div>
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-bg border-b border-border">
             <tr>{['User', 'Role', 'IP Address', 'Signed In', 'Last Activity', 'Status', ''].map(h => (
               <th key={h} className="text-left px-4 py-3 text-xs text-text-muted font-medium">{h}</th>

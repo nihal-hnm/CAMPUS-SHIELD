@@ -41,7 +41,7 @@ export default function EmergencyPage() {
           </div>
           <h2 className="text-xl font-semibold text-text mb-2">Emergency revocation complete</h2>
           <p className="text-sm text-text-muted mb-5">The following actions were taken immediately.</p>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             {[
               { label: 'Permissions revoked', value: result.permissions },
               { label: 'Sessions ended',      value: result.sessions },
@@ -90,7 +90,7 @@ export default function EmergencyPage() {
           {step === 1 && (
             <div className="space-y-5">
               <h2 className="text-base font-semibold text-text">Step 1: Select Target</h2>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {([
                   { type: 'user' as TargetType, label: 'User', icon: User, desc: 'Revoke all access for a specific user' },
                   { type: 'document' as TargetType, label: 'Document', icon: FileText, desc: 'Lock down a specific document' },

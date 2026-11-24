@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Files, Users, Building2, Shield, Tag, KeyRound, ScrollText,
   Inbox, FlaskConical, MonitorSmartphone, OctagonAlert, Activity, History,
-  Settings, BookOpen, FileText, ChevronLeft, ChevronRight, LogOut, User
+  Settings, BookOpen, FileText, ChevronLeft, ChevronRight, LogOut, User, X, Menu
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSidebar } from '../../context/SidebarContext';
 import { cn } from '../../utils/format';
 import type { Role } from '../../types/user';
 
@@ -54,9 +55,9 @@ function userNav(role: Role): NavGroup[] {
   return [{ group: 'Navigation', items }];
 }
 
-export function AppSidebar() {
+function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, toggleCollapsed } = useSidebar();
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -65,18 +66,25 @@ export function AppSidebar() {
   const groups = isAdmin ? adminNav() : userNav(user.role);
 
   return (
-    <aside className={cn(
-      'flex flex-col bg-navy text-text-on-navy transition-all duration-200 flex-shrink-0',
-      collapsed ? 'w-[72px]' : 'w-64'
-    )}>
+    <div className="flex flex-col h-full bg-navy text-text-on-navy">
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-4 border-b border-navy-hover">
         <Shield className="w-6 h-6 text-primary flex-shrink-0" strokeWidth={2} />
-        {!collapsed && (
-          <div>
+        {(!collapsed || onClose) && (
+          <div className="flex-1">
             <span className="text-sm font-semibold text-white">CampusShield</span>
             <p className="text-[10px] text-text-on-navy-muted leading-none mt-0.5">Zero-Trust Platform</p>
           </div>
+        )}
+        {/* Mobile close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1 text-text-on-navy-muted hover:text-white ml-auto"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         )}
       </div>
 
@@ -92,14 +100,15 @@ export function AppSidebar() {
                 key={to}
                 to={to}
                 end={to === '/admin'}
+                onClick={onClose}
                 className={({ isActive }) =>
-                  cn('sidebar-item', isActive && 'sidebar-item-active', collapsed && 'justify-center px-2')
+                  cn('sidebar-item', isActive && 'sidebar-item-active', collapsed && !onClose && 'justify-center px-2')
                 }
-                title={collapsed ? label : undefined}
+                title={collapsed && !onClose ? label : undefined}
               >
-                <Icon className={cn('flex-shrink-0', collapsed ? 'w-5 h-5' : 'w-4 h-4')} />
-                {!collapsed && <span className="flex-1">{label}</span>}
-                {!collapsed && badge !== undefined && badge > 0 && (
+                <Icon className={cn('flex-shrink-0', collapsed && !onClose ? 'w-5 h-5' : 'w-4 h-4')} />
+                {(!collapsed || onClose) && <span className="flex-1">{label}</span>}
+                {(!collapsed || onClose) && badge !== undefined && badge > 0 && (
                   <span className="ml-auto text-[10px] font-semibold bg-primary text-white rounded-full px-1.5 py-0.5">{badge}</span>
                 )}
               </NavLink>
@@ -110,7 +119,7 @@ export function AppSidebar() {
 
       {/* Bottom: collapse + user */}
       <div className="border-t border-navy-hover px-2 py-3 space-y-1">
-        {!collapsed && (
+        {(!collapsed || onClose) && (
           <div className="flex items-center gap-2 px-2 py-2">
             <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
               {user.name.charAt(0)}
@@ -124,17 +133,57 @@ export function AppSidebar() {
             </button>
           </div>
         )}
-        <button
-          onClick={() => setCollapsed(v => !v)}
-          className="sidebar-item w-full text-text-on-navy-muted"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed
-            ? <ChevronRight className="w-4 h-4 mx-auto" />
-            : <><ChevronLeft className="w-4 h-4" /><span>Collapse</span></>
-          }
-        </button>
+        {/* Only show collapse toggle on desktop (not in mobile drawer) */}
+        {!onClose && (
+          <button
+            onClick={toggleCollapsed}
+            className="sidebar-item w-full text-text-on-navy-muted"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed
+              ? <ChevronRight className="w-4 h-4 mx-auto" />
+              : <><ChevronLeft className="w-4 h-4" /><span>Collapse</span></>
+            }
+          </button>
+        )}
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export function AppSidebar() {
+  const { collapsed, mobileOpen, setMobileOpen } = useSidebar();
+
+  return (
+    <>
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-200 ease-in-out lg:hidden',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <SidebarContent onClose={() => setMobileOpen(false)} />
+      </div>
+
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden lg:flex flex-col flex-shrink-0 transition-all duration-200',
+          collapsed ? 'w-[72px]' : 'w-64'
+        )}
+      >
+        <SidebarContent />
+      </aside>
+    </>
   );
 }

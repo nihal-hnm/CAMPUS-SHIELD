@@ -22,8 +22,8 @@ export default function DocumentMgmtPage() {
         <select className="input w-auto"><option>All Depts</option></select>
         <select className="input w-auto"><option>All Classifications</option></select>
       </div>
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-bg border-b border-border">
             <tr>{['Name', 'Dept', 'Subject', 'Classification', 'Owner', 'Size', 'Updated', 'Status', ''].map(h => (
               <th key={h} className="text-left px-4 py-3 text-xs text-text-muted font-medium">{h}</th>

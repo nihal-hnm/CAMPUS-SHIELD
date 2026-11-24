@@ -40,12 +40,12 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-text">Admin Dashboard</h1>
           <p className="text-sm text-text-muted mt-1">System security posture overview</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="text-xs text-text-muted">Updated {formatRelative(lastUpdated.toISOString())}</span>
           <Button variant="secondary" size="sm" onClick={refresh}>
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
