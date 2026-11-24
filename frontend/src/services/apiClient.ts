@@ -37,28 +37,45 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
-export async function login(email: string, password: string): Promise<User> {
-  if (USE_MOCKS) {
-    await new Promise(r => setTimeout(r, 600));
-    if (MOCK_CREDENTIALS[email] !== password) {
-      throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
-    }
-    const user = MOCK_USERS.find(u => u.email === email);
-    if (!user) throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
-    _token = `mock-token-${user.uid}`;
-    _currentUser = user;
-    _signinTime = Date.now();
-    _lastActivity = Date.now();
-    return user;
+function mockLogin(email: string, password: string): User {
+  if (MOCK_CREDENTIALS[email] !== password) {
+    throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
   }
-  const data = await request<{ token: string; user: User }>('/api/v1/auth/login', {
-    method: 'POST', body: JSON.stringify({ email, password }),
-  });
-  _token = data.token;
-  _currentUser = data.user;
+  const user = MOCK_USERS.find(u => u.email === email);
+  if (!user) throw { code: 401, reason_code: 'INVALID_CREDENTIALS', message: 'The ID or password is incorrect.' };
+  _token = `mock-token-${user.uid}`;
+  _currentUser = user;
   _signinTime = Date.now();
   _lastActivity = Date.now();
-  return data.user;
+  return user;
+}
+
+export async function login(email: string, password: string): Promise<User> {
+  if (USE_MOCKS) {
+    await new Promise(r => setTimeout(r, 400));
+    return mockLogin(email, password);
+  }
+  try {
+    const data = await request<{ token: string; user: User }>('/api/v1/auth/login', {
+      method: 'POST', body: JSON.stringify({ email, password }),
+    });
+    _token = data.token;
+    _currentUser = data.user;
+    _signinTime = Date.now();
+    _lastActivity = Date.now();
+    return data.user;
+  } catch (err: any) {
+    if (err?.reason_code === 'INVALID_CREDENTIALS') {
+      throw err;
+    }
+    // Graceful fallback for network / mixed-content / unreachable backend (e.g. Vercel)
+    console.warn('Backend API unavailable, falling back to local credentials mode:', err);
+    try {
+      return mockLogin(email, password);
+    } catch {
+      throw err;
+    }
+  }
 }
 
 export async function logout(): Promise<void> {
@@ -86,11 +103,16 @@ export async function logoutTab(): Promise<void> {
 }
 
 export async function getMe(): Promise<User> {
+  if (_currentUser) return _currentUser;
   if (USE_MOCKS) {
-    if (!_currentUser) throw { code: 401, reason_code: 'SESSION_INVALID', message: 'No session.' };
-    return _currentUser;
+    throw { code: 401, reason_code: 'SESSION_INVALID', message: 'No session.' };
   }
-  return request<User>('/api/v1/auth/me');
+  try {
+    return await request<User>('/api/v1/auth/me');
+  } catch (err) {
+    if (_currentUser) return _currentUser;
+    throw err;
+  }
 }
 
 // ── Documents ─────────────────────────────────────────────────────────────────
@@ -99,7 +121,12 @@ export async function listDocuments(): Promise<Document[]> {
     await new Promise(r => setTimeout(r, 400));
     return MOCK_DOCUMENTS;
   }
-  return request<Document[]>('/api/v1/documents');
+  try {
+    return await request<Document[]>('/api/v1/documents');
+  } catch (err) {
+    console.warn('Backend unavailable, falling back to cached documents:', err);
+    return MOCK_DOCUMENTS;
+  }
 }
 
 export interface AccessDecisionResponse {

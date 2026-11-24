@@ -115,13 +115,43 @@ export default function LoginPage() {
               Contact your administrator for account issues.
             </p>
 
-            {/* Demo credentials hint */}
-            <div className="mt-4 p-3 bg-bg rounded border border-border text-xs text-text-muted space-y-1">
-              <p className="font-medium text-text">Demo Credentials</p>
-              <p>Admin: <span className="font-mono">admin@college.edu / admin123</span></p>
-              <p>HOD: <span className="font-mono">hod@cse.college.edu / hod123</span></p>
-              <p>Faculty: <span className="font-mono">fac1@college.edu / fac123</span></p>
-              <p>Student: <span className="font-mono">student@college.edu / stu123</span></p>
+            {/* Demo credentials hint & quick fill */}
+            <div className="mt-5 p-4 bg-bg rounded-lg border border-border text-xs space-y-2">
+              <p className="font-semibold text-text">Quick Demo Sign-In (Click to fill & login)</p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setEmail('admin@college.edu'); setPassword('admin123'); }}
+                  className="px-2.5 py-1.5 bg-surface border border-border rounded text-left hover:border-primary transition-colors"
+                >
+                  <p className="font-medium text-text">👑 Super Admin</p>
+                  <p className="text-[10px] text-text-muted truncate">admin@college.edu</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEmail('hod@cse.college.edu'); setPassword('hod123'); }}
+                  className="px-2.5 py-1.5 bg-surface border border-border rounded text-left hover:border-primary transition-colors"
+                >
+                  <p className="font-medium text-text">🏛️ Dept HOD</p>
+                  <p className="text-[10px] text-text-muted truncate">hod@cse.college.edu</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEmail('fac1@college.edu'); setPassword('fac123'); }}
+                  className="px-2.5 py-1.5 bg-surface border border-border rounded text-left hover:border-primary transition-colors"
+                >
+                  <p className="font-medium text-text">🎓 Faculty (CSE)</p>
+                  <p className="text-[10px] text-text-muted truncate">fac1@college.edu</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEmail('student@college.edu'); setPassword('stu123'); }}
+                  className="px-2.5 py-1.5 bg-surface border border-border rounded text-left hover:border-primary transition-colors"
+                >
+                  <p className="font-medium text-text">📚 Student</p>
+                  <p className="text-[10px] text-text-muted truncate">student@college.edu</p>
+                </button>
+              </div>
             </div>
           </div>
         </div>
