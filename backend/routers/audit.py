@@ -9,6 +9,7 @@ from typing import Optional
 
 from routers.auth import get_current_user, require_admin
 from models.audit import AuditLogEntry
+from services.anomaly_detector import detect_anomalies
 
 router = APIRouter()
 
@@ -73,3 +74,12 @@ async def get_logs(
     start = (page - 1) * page_size
     end = start + page_size
     return [AuditLogEntry(**l) for l in logs[start:end]]
+
+
+@router.get("/anomalies")
+async def get_security_anomalies(
+    _admin: dict = Depends(require_admin),
+):
+    """Run behavioral anomaly detection over the audit log stream (advisory telemetry)."""
+    anomalies = detect_anomalies(AUDIT_LOG)
+    return {"count": len(anomalies), "anomalies": anomalies}

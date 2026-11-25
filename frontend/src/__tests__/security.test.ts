@@ -110,3 +110,36 @@ describe('Cryptographic Audit Hash Chain', () => {
     expect(verification.brokenAt).toBe(1);
   });
 });
+
+describe('Zero-Knowledge Document Envelope Encryption (AES-256-GCM)', () => {
+  it('encrypts and decrypts a confidential document with PBKDF2 + AES-256-GCM', async () => {
+    const { encryptDocumentZK, decryptDocumentZK } = await import('../utils/zkVault');
+    const secretText = 'CS301 End-Semester Question Paper — Confidential';
+    const envelope = await encryptDocumentZK(secretText, 'VaultPass@2026');
+
+    expect(envelope.version).toBe('CS-ZK-V1');
+    expect(envelope.algorithm).toBe('AES-256-GCM');
+    expect(envelope.ciphertext).not.toContain('Question Paper');
+
+    const recovered = await decryptDocumentZK(envelope, 'VaultPass@2026');
+    expect(recovered).toBe(secretText);
+  });
+
+  it('rejects decryption with an incorrect passphrase', async () => {
+    const { encryptDocumentZK, decryptDocumentZK } = await import('../utils/zkVault');
+    const envelope = await encryptDocumentZK('Top Secret', 'CorrectPass#1');
+
+    await expect(decryptDocumentZK(envelope, 'WrongPass#2')).rejects.toThrow();
+  });
+});
+
+describe('WebAuthn FIDO2 Utilities', () => {
+  it('generates unique 32-byte cryptographic challenges', async () => {
+    const { generateWebAuthnChallenge } = await import('../utils/webauthn');
+    const c1 = generateWebAuthnChallenge();
+    const c2 = generateWebAuthnChallenge();
+    expect(c1).toHaveLength(32);
+    expect(c2).toHaveLength(32);
+    expect(Array.from(c1).join(',')).not.toBe(Array.from(c2).join(','));
+  });
+});
