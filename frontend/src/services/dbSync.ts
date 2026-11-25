@@ -1,12 +1,13 @@
 import { supabase } from './supabaseClient';
 import {
   MOCK_USERS, MOCK_DEPARTMENTS, MOCK_DOCUMENTS, MOCK_PERMISSIONS,
-  MOCK_REQUESTS, MOCK_MAGIC_LINKS, MOCK_ASSIGNMENT_TASKS, MOCK_ASSIGNMENTS,
+  MOCK_REQUESTS, MOCK_MAGIC_LINKS, MOCK_ASSIGNMENT_TASKS, MOCK_ASSIGNMENTS, MOCK_AUDIT_LOGS,
   type Department, type MagicLink, type AssignedTask, type AssignmentSubmission
 } from '../mocks/data';
 import type { User } from '../types/user';
 import type { Document } from '../types/document';
 import type { AccessRequest, Permission } from '../types/permission';
+import type { AuditLog } from '../types/audit';
 
 export async function hashPassword(password: string): Promise<string> {
   const data = new TextEncoder().encode('cv_salt:' + password);
@@ -22,7 +23,7 @@ export async function syncAllFromSupabase(): Promise<void> {
   if (_syncPromise) return _syncPromise;
   _syncPromise = (async () => {
     try {
-      const [uRes, dRes, docRes, pRes, rRes, mRes, tRes, aRes] = await Promise.all([
+      const [uRes, dRes, docRes, pRes, rRes, mRes, tRes, aRes, logRes] = await Promise.all([
         supabase.from('users').select('uid,email,name,role,department,assigned_subjects,special_tags,roll_no,status,active_session_id,last_active_at,last_reauth_at,created_at').order('created_at', { ascending: true }),
         supabase.from('departments').select('*').order('name', { ascending: true }),
         supabase.from('documents').select('*').order('created_at', { ascending: false }),
@@ -31,6 +32,7 @@ export async function syncAllFromSupabase(): Promise<void> {
         supabase.from('magic_links').select('*').order('expires_at', { ascending: false }),
         supabase.from('assignment_tasks').select('*').order('created_at', { ascending: false }),
         supabase.from('assignment_submissions').select('*').order('submitted_at', { ascending: false }),
+        supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
       ]);
 
       if (!uRes.error && uRes.data) {
@@ -56,6 +58,27 @@ export async function syncAllFromSupabase(): Promise<void> {
       }
       if (!aRes.error && aRes.data) {
         MOCK_ASSIGNMENTS.splice(0, MOCK_ASSIGNMENTS.length, ...(aRes.data as AssignmentSubmission[]));
+      }
+      if (!logRes.error && logRes.data) {
+        const mapped: AuditLog[] = logRes.data.map((r: any) => {
+          const u = MOCK_USERS.find(usr => usr.uid === r.user_id || usr.email === r.user_id);
+          const doc = MOCK_DOCUMENTS.find(d => d.document_id === r.document_id);
+          return {
+            log_id: r.id,
+            timestamp: r.created_at,
+            user_id: r.user_id ?? 'anonymous',
+            user_name: u?.name ?? r.user_id ?? 'Anonymous',
+            user_role: r.user_role ?? u?.role ?? 'unknown',
+            special_tags: r.special_tags ?? [],
+            document_id: r.document_id ?? undefined,
+            document_title: doc?.title ?? r.document_id ?? undefined,
+            action: r.action,
+            failure_reason: r.failure_reason ?? undefined,
+            reason_code: r.reason_code ?? undefined,
+            ip_address: r.ip_address ?? 'web-client',
+          };
+        });
+        MOCK_AUDIT_LOGS.splice(0, MOCK_AUDIT_LOGS.length, ...mapped);
       }
     } catch (err) {
       console.warn('Supabase sync warning:', err);
@@ -180,4 +203,51 @@ export async function upsertAssignmentTasksToSupabase(tasks: AssignedTask[]): Pr
 export async function upsertAssignmentsToSupabase(subs: AssignmentSubmission[]): Promise<void> {
   if (!subs.length) return;
   await supabase.from('assignment_submissions').upsert(subs, { onConflict: 'id' });
+}
+
+export async function logAuditEvent(params: {
+  user_id?: string | null;
+  user_name?: string;
+  user_role?: string;
+  special_tags?: string[];
+  document_id?: string | null;
+  document_title?: string;
+  action: 'ALLOW' | 'DENY';
+  failure_reason?: string;
+  reason_code?: string;
+}): Promise<void> {
+  const id = `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const now = new Date().toISOString();
+  const entry: AuditLog = {
+    log_id: id,
+    timestamp: now,
+    user_id: params.user_id ?? 'anonymous',
+    user_name: params.user_name ?? params.user_id ?? 'Anonymous',
+    user_role: params.user_role ?? 'unknown',
+    special_tags: params.special_tags ?? [],
+    document_id: params.document_id ?? undefined,
+    document_title: params.document_title ?? params.document_id ?? undefined,
+    action: params.action,
+    failure_reason: params.failure_reason,
+    reason_code: params.reason_code,
+    ip_address: 'web-client',
+  };
+  MOCK_AUDIT_LOGS.unshift(entry);
+  try {
+    await supabase.from('audit_logs').insert({
+      id,
+      user_id: params.user_id ?? null,
+      user_role: params.user_role ?? null,
+      special_tags: params.special_tags ?? [],
+      document_id: params.document_id ?? null,
+      action: params.action,
+      failure_reason: params.failure_reason ?? null,
+      reason_code: params.reason_code ?? null,
+      ip_address: 'web-client',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 120) : null,
+      created_at: now,
+    });
+  } catch (err) {
+    console.warn('Audit log write warning:', err);
+  }
 }

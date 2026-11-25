@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_AUDIT_LOGS, MOCK_USERS, MOCK_DOCUMENTS, MOCK_REQUESTS } from '../../mocks/data';
+import { syncAllFromSupabase } from '../../services/dbSync';
+import { formatRole } from '../../constants/roles';
 import { formatDateTime, formatRelative } from '../../utils/format';
 
 function StatCard({ label, value, sub, icon: Icon, to, variant = 'default' }: {
@@ -32,10 +34,20 @@ function StatCard({ label, value, sub, icon: Icon, to, variant = 'default' }: {
 
 export default function AdminDashboardPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [, setTick] = useState(0);
+
+  const refresh = async () => {
+    await syncAllFromSupabase();
+    setLastUpdated(new Date());
+    setTick(t => t + 1);
+  };
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
   const deniedToday = MOCK_AUDIT_LOGS.filter(l => l.action === 'DENY').length;
   const pendingReqs = MOCK_REQUESTS.filter(r => r.status === 'pending').length;
-
-  const refresh = () => setLastUpdated(new Date());
 
   return (
     <div className="space-y-6">
@@ -92,7 +104,7 @@ export default function AdminDashboardPage() {
                   <td className="px-3 py-2.5">
                     <div>
                       <p className="text-xs font-medium text-text">{log.user_name ?? log.user_id}</p>
-                      <p className="text-[10px] text-text-muted capitalize">{log.user_role}</p>
+                      <p className="text-[10px] text-text-muted">{formatRole(log.user_role)}</p>
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-xs text-text-muted max-w-[140px] truncate">{log.document_title ?? log.document_id ?? '—'}</td>
