@@ -5,7 +5,8 @@ import { MOCK_AUDIT_LOGS } from '../../mocks/data';
 import { syncAllFromSupabase } from '../../services/dbSync';
 import { formatDateTime } from '../../utils/format';
 import { formatRole } from '../../constants/roles';
-import { Search, Download, RefreshCw } from 'lucide-react';
+import { Search, Download, RefreshCw, ShieldCheck } from 'lucide-react';
+import { buildAuditChain, verifyAuditChain } from '../../utils/auditChain';
 import type { AuditLog } from '../../types/audit';
 
 export default function AuditLogsPage() {
@@ -14,6 +15,19 @@ export default function AuditLogsPage() {
   const [filterAction, setFilterAction] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [chainStatus, setChainStatus] = useState<{ valid: boolean; checked: number; brokenAt?: number } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
+  const verifyIntegrity = async () => {
+    setVerifying(true);
+    try {
+      const chain = await buildAuditChain([...logs].reverse());
+      const result = await verifyAuditChain(chain);
+      setChainStatus(result);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const reload = async () => {
     setRefreshing(true);
@@ -75,7 +89,24 @@ export default function AuditLogsPage() {
             Immutable record of all access decisions. Every ALLOW and DENY is logged ({filtered.length} shown).
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {chainStatus && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                chainStatus.valid
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              {chainStatus.valid
+                ? `SHA-256 Chain Verified (${chainStatus.checked} blocks)`
+                : `Chain Tampered at #${chainStatus.brokenAt}`}
+            </span>
+          )}
+          <Button variant="secondary" size="sm" onClick={verifyIntegrity} loading={verifying} disabled={logs.length === 0}>
+            <ShieldCheck className="w-4 h-4" /> Verify Integrity
+          </Button>
           <Button variant="secondary" size="sm" onClick={reload} loading={refreshing}>
             <RefreshCw className="w-4 h-4" /> Refresh
           </Button>

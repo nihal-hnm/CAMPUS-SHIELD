@@ -54,6 +54,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import ReauthPage from '../pages/auth/ReauthPage';
 import SessionExpiredPage from '../pages/auth/SessionExpiredPage';
 import LoggedInElsewherePage from '../pages/auth/LoggedInElsewherePage';
+import MagicLinkViewerPage from '../pages/auth/MagicLinkViewerPage';
 
 // User pages
 const UserDashboardPage     = lazyWithRetry(() => import('../pages/user/DashboardPage'));
@@ -158,6 +159,7 @@ const router = createBrowserRouter([
   { path: '/reauth',              element: <ReauthPage />, errorElement: <RouteErrorBoundary /> },
   { path: '/session-expired',     element: <SessionExpiredPage />, errorElement: <RouteErrorBoundary /> },
   { path: '/logged-in-elsewhere', element: <LoggedInElsewherePage />, errorElement: <RouteErrorBoundary /> },
+  { path: '/magic/:token',        element: <MagicLinkViewerPage />, errorElement: <RouteErrorBoundary /> },
   { path: '/',                    element: <RequireAuth><RoleRedirect /></RequireAuth>, errorElement: <RouteErrorBoundary /> },
 
   // User & HOD portal
