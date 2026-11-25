@@ -3,7 +3,7 @@ import type { Role } from '../types/user';
 export const ROLES: Record<Role, string> = {
   ultra_admin:       'Ultra Admin',
   super_admin:       'Super Admin',
-  dept_admin:        'Department Admin (HOD)',
+  dept_admin:        'H.O.D',
   faculty:           'Faculty',
   student:           'Student',
   financial_auditor: 'Financial Auditor',
@@ -12,11 +12,17 @@ export const ROLES: Record<Role, string> = {
 export const ROLE_DISPLAY: Record<Role, string> = {
   ultra_admin:       'Ultra Admin',
   super_admin:       'Admin',
-  dept_admin:        'HOD',
+  dept_admin:        'H.O.D',
   faculty:           'Faculty',
   student:           'Student',
   financial_auditor: 'Auditor',
 };
+
+export function formatRole(role?: string | null): string {
+  if (!role) return '—';
+  if (role in ROLE_DISPLAY) return ROLE_DISPLAY[role as Role];
+  return role.replace(/_/g, ' ');
+}
 
 export const ADMIN_ROLES: Role[] = ['ultra_admin', 'super_admin'];
 export const HOD_ROLES: Role[]   = ['dept_admin'];

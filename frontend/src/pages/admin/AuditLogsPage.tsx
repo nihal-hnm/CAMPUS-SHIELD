@@ -3,6 +3,7 @@ import { StatusBadge, ClassificationBadge } from '../../components/ui/StatusBadg
 import { Button } from '../../components/ui/Button';
 import { MOCK_AUDIT_LOGS } from '../../mocks/data';
 import { formatDateTime } from '../../utils/format';
+import { formatRole } from '../../constants/roles';
 import { Search, Download } from 'lucide-react';
 
 export default function AuditLogsPage() {
@@ -42,7 +43,7 @@ export default function AuditLogsPage() {
                   <p className="font-medium text-text">{log.user_name ?? log.user_id}</p>
                   <p className="font-mono text-[10px] text-text-muted">{log.user_id}</p>
                 </td>
-                <td className="px-4 py-3 text-text-muted capitalize text-xs">{log.user_role.replace('_', ' ')}</td>
+                <td className="px-4 py-3 text-text-muted text-xs">{formatRole(log.user_role)}</td>
                 <td className="px-4 py-3">
                   {log.special_tags.length > 0
                     ? <span className="badge badge-info text-[10px]">{log.special_tags.join(', ')}</span>

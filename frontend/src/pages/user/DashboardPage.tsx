@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ClassificationBadge } from '../../components/ui/StatusBadge';
 import { MOCK_DOCUMENTS, MOCK_PERMISSIONS, MOCK_REQUESTS } from '../../mocks/data';
 import { formatRelative, formatCountdown } from '../../utils/format';
+import { formatRole } from '../../constants/roles';
 
 function StatCard({ label, value, sub, icon: Icon, to }: { label: string; value: number | string; sub?: string; icon: React.ComponentType<{ className?: string }>; to?: string }) {
   const inner = (
@@ -33,7 +34,7 @@ export default function UserDashboardPage() {
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-semibold text-text">Dashboard</h1>
-        <p className="text-sm text-text-muted mt-1">{user?.department} · {user?.role?.replace('_', ' ')} workspace</p>
+        <p className="text-sm text-text-muted mt-1">{user?.department} · {formatRole(user?.role)} workspace</p>
       </div>
 
       {/* Stat cards */}

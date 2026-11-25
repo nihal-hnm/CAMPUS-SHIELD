@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { formatRole } from '../../constants/roles';
 import { User, Shield, Sliders } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -15,7 +16,7 @@ export default function ProfilePage() {
             {[
               ['Name', user.name],
               ['Email', user.email],
-              ['Role', user.role.replace('_', ' ')],
+              ['Role', formatRole(user.role)],
               ['Department', user.department],
               ['Status', user.status],
               ['Subjects', user.assigned_subjects.join(', ') || 'N/A'],

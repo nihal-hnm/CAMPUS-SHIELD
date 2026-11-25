@@ -3,6 +3,7 @@ import { Shield, Users, GraduationCap, BookOpen, Edit, X, ChevronDown, Search } 
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers } from '../../mocks/data';
+import { formatRole } from '../../constants/roles';
 import { syncAllFromSupabase } from '../../services/dbSync';
 import type { User } from '../../types/user';
 
@@ -116,7 +117,7 @@ export default function RoleManagementPage() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-text-muted mb-1">Current Role</label>
-                <p className="text-sm font-medium text-text capitalize">{editUser.role.replace('_',' ')}</p>
+                <p className="text-sm font-medium text-text">{formatRole(editUser.role)}</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-text-muted mb-1">New Role</label>
@@ -181,7 +182,7 @@ export default function RoleManagementPage() {
                     u.role === 'faculty'     ? 'badge-success' :
                     'badge-neutral'
                   }>
-                    {u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                    {formatRole(u.role)}
                   </span>
                 </td>
                 <td className="px-4 py-3"><StatusBadge variant={u.status === 'active' ? 'success' : 'neutral'} label={u.status} /></td>

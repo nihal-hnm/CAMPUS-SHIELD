@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
 import { MOCK_DOCUMENTS, MOCK_USERS } from '../../mocks/data';
+import { formatRole } from '../../constants/roles';
 
 function useBreadcrumbs() {
   const { pathname } = useLocation();
@@ -111,7 +112,7 @@ export function TopNavbar() {
             </div>
             <div className="hidden md:block text-right">
               <p className="text-xs font-medium text-text leading-none">{user.name}</p>
-              <p className="text-[10px] text-text-muted capitalize mt-0.5">{user.role.replace('_', ' ')}</p>
+              <p className="text-[10px] text-text-muted mt-0.5">{formatRole(user.role)}</p>
             </div>
           </div>
         )}
@@ -171,7 +172,7 @@ export function TopNavbar() {
                         <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{u.name[0]}</div>
                         <div>
                           <p className="text-sm font-medium text-text">{u.name}</p>
-                          <p className="text-[10px] text-text-muted">{u.email} · {u.role.replace('_', ' ')} · {u.department}</p>
+                          <p className="text-[10px] text-text-muted">{u.email} · {formatRole(u.role)} · {u.department}</p>
                         </div>
                       </div>
                     ))}

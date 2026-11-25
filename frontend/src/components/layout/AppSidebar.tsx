@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
 import { cn } from '../../utils/format';
+import { formatRole } from '../../constants/roles';
 import type { Role } from '../../types/user';
 
 interface NavItem {
@@ -154,7 +155,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-text-on-navy truncate">{user.name}</p>
-              <p className="text-[10px] text-text-on-navy-muted capitalize">{user.role.replace('_', ' ')}</p>
+              <p className="text-[10px] text-text-on-navy-muted">{formatRole(user.role)}</p>
             </div>
             <button onClick={() => logout().then(() => navigate('/login'))} className="p-1 hover:text-white text-text-on-navy-muted" title="Sign out">
               <LogOut className="w-4 h-4" />

@@ -341,7 +341,7 @@ export default function UserManagementPage() {
                     u.role === 'faculty'     ? 'badge-success' :
                     'badge-neutral'
                   }>
-                    {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'HOD' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                    {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'H.O.D' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-text-muted">{u.department}</td>

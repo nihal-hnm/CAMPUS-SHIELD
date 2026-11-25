@@ -3,6 +3,7 @@ import { MonitorSmartphone, Trash2 } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_USERS } from '../../mocks/data';
+import { formatRole } from '../../constants/roles';
 
 export default function SessionMgmtPage() {
   return (
@@ -22,7 +23,7 @@ export default function SessionMgmtPage() {
             {MOCK_USERS.filter(u => u.status === 'active').map((u, i) => (
               <tr key={u.uid} className="border-b border-border hover:bg-bg">
                 <td className="px-4 py-3"><div><p className="font-medium text-text">{u.name}</p><p className="text-[10px] font-mono text-text-muted">{u.email}</p></div></td>
-                <td className="px-4 py-3 capitalize text-text-muted text-xs">{u.role.replace('_',' ')}</td>
+                <td className="px-4 py-3 text-text-muted text-xs">{formatRole(u.role)}</td>
                 <td className="px-4 py-3 font-mono text-xs text-text-muted">192.168.1.{100 + i}</td>
                 <td className="px-4 py-3 text-xs text-text-muted">2 hours ago</td>
                 <td className="px-4 py-3 text-xs text-text-muted">Just now</td>

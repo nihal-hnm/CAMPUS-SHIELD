@@ -3,6 +3,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_REQUESTS, MOCK_DOCUMENTS, MOCK_USERS, MOCK_PERMISSIONS, saveRequests, savePermissions } from '../../mocks/data';
 import { useAuth } from '../../context/AuthContext';
+import { formatRole } from '../../constants/roles';
 import { formatRelative } from '../../utils/format';
 import type { AccessRequest } from '../../types/permission';
 import { CheckCircle, XCircle, Clock, Inbox } from 'lucide-react';
@@ -122,7 +123,7 @@ export default function AccessRequestsAdminPage() {
             {filtered.map(r => (
               <tr key={r.id} className="border-b border-border hover:bg-bg">
                 <td className="px-4 py-3 font-medium text-text">{r.requester_name}</td>
-                <td className="px-4 py-3 text-text-muted capitalize text-xs">{r.requester_role?.replace('_',' ')}</td>
+                <td className="px-4 py-3 text-text-muted text-xs">{formatRole(r.requester_role)}</td>
                 <td className="px-4 py-3 text-text-muted max-w-[150px] truncate">{r.resource_title ?? r.resource_id}</td>
                 <td className="px-4 py-3 capitalize text-text-muted">{r.permission}</td>
                 <td className="px-4 py-3 text-text-muted max-w-[160px] truncate" title={r.reason}>{r.reason}</td>
