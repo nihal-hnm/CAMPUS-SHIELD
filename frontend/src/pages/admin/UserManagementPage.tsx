@@ -343,7 +343,7 @@ export default function UserManagementPage() {
             <table className="w-full text-sm min-w-[700px]">
               <thead className="bg-bg border-b border-border">
                 <tr>
-                  {['Name / ID','Email','Role','Dept','Roll No.','Status','Last Sign-in','Actions'].map(h => (
+                  {['Name / ID','Email','Role','Dept','Roll No. / Subject','Status','Last Sign-in','Actions'].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs text-text-muted font-medium">{h}</th>
                   ))}
                 </tr>
@@ -378,7 +378,11 @@ export default function UserManagementPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-text-muted">{u.department}</td>
-                    <td className="px-4 py-3 text-text-muted font-mono text-xs">{(u as any).roll_no || '—'}</td>
+                    <td className="px-4 py-3 text-text-muted font-mono text-xs">
+                      {u.role === 'faculty' && u.assigned_subjects?.length
+                        ? <span className="badge-success font-sans">{u.assigned_subjects.join(', ')}</span>
+                        : ((u as any).roll_no || '—')}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge variant={statusVariant[u.status] ?? 'neutral'} label={u.status} /></td>
                     <td className="px-4 py-3 text-xs text-text-muted">{formatRelative(u.last_active_at)}</td>
                     <td className="px-4 py-3">

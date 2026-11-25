@@ -35,8 +35,8 @@ export interface Student {
 }
 
 export let MOCK_DEPARTMENTS: Department[] = [
-  { id: 'dept_cse', name: 'B.Tech CSE',       code: 'CSE', subjects: ['CS-101','CS-201','CS-301','CS-302','CS-401'], student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_bph', name: 'B.Pharmacy',       code: 'BPH', subjects: ['PH-101','PH-201','PH-301','PH-401'],         student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_cse', name: 'B.Tech CSE',       code: 'CSE', subjects: ['Python','Web Development','Maths','Generative AI'], student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_bph', name: 'B.Pharmacy',       code: 'BPH', subjects: ['Anatomy','Physiology','Chemistry'],                 student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
   { id: 'dept_for', name: 'Forensic Science', code: 'FOR', subjects: ['FS-101','FS-201','FS-301'],                   student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
   { id: 'dept_hm',  name: 'Hotel Management', code: 'HM',  subjects: ['HM-101','HM-201','HM-301'],                   student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
   { id: 'dept_agr', name: 'Agriculture',      code: 'AGR', subjects: ['AG-101','AG-201','AG-301','AG-401'],          student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },

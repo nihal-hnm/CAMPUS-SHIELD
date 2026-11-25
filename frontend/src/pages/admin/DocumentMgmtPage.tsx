@@ -125,7 +125,7 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-text-muted mb-1">Subject Code (optional)</label>
+            <label className="block text-xs font-medium text-text-muted mb-1">Subject (optional)</label>
             <div className="relative">
               <select className="input w-full text-sm appearance-none pr-7" value={subject} onChange={e => setSubject(e.target.value)} disabled={!deptObj || deptObj.subjects.length === 0}>
                 <option value="">None</option>

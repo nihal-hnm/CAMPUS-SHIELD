@@ -64,14 +64,17 @@ CREATE TABLE IF NOT EXISTS public.departments (
 
 INSERT INTO public.departments (id, name, code, subjects, student_count, faculty_count, status, faculties, students)
 VALUES
-  ('dept_cse', 'B.Tech CSE',       'CSE', '{CS-101,CS-201,CS-301,CS-302,CS-401}', 0, 0, 'active', '[]', '[]'),
-  ('dept_bph', 'B.Pharmacy',       'BPH', '{PH-101,PH-201,PH-301,PH-401}',        0, 0, 'active', '[]', '[]'),
+  ('dept_cse', 'B.Tech CSE',       'CSE', ARRAY['Python','Web Development','Maths','Generative AI'], 0, 0, 'active', '[]', '[]'),
+  ('dept_bph', 'B.Pharmacy',       'BPH', ARRAY['Anatomy','Physiology','Chemistry'],                 0, 0, 'active', '[]', '[]'),
   ('dept_for', 'Forensic Science', 'FOR', '{FS-101,FS-201,FS-301}',               0, 0, 'active', '[]', '[]'),
   ('dept_hm',  'Hotel Management', 'HM',  '{HM-101,HM-201,HM-301}',               0, 0, 'active', '[]', '[]'),
   ('dept_agr', 'Agriculture',      'AGR', '{AG-101,AG-201,AG-301,AG-401}',        0, 0, 'active', '[]', '[]'),
   ('dept_bba', 'BBA',              'BBA', '{BBA-101,BBA-201,BBA-301}',            0, 0, 'active', '[]', '[]'),
   ('dept_law', 'Law',              'LAW', '{LAW-101,LAW-201,LAW-301,LAW-401}',    0, 0, 'active', '[]', '[]')
 ON CONFLICT (id) DO NOTHING;
+
+UPDATE public.departments SET subjects = ARRAY['Python','Web Development','Maths','Generative AI'] WHERE id = 'dept_cse';
+UPDATE public.departments SET subjects = ARRAY['Anatomy','Physiology','Chemistry'] WHERE id = 'dept_bph';
 
 -- 4. Permissions table
 CREATE TABLE IF NOT EXISTS public.permissions (
