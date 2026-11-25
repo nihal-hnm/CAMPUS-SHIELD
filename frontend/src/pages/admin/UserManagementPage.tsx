@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown } from 'lucide-react';
+import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown, Users, Building2 } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers, saveDepartments } from '../../mocks/data';
@@ -41,6 +41,7 @@ export default function UserManagementPage() {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterDept, setFilterDept] = useState('');
+  const [viewMode, setViewMode] = useState<'all' | 'by-role' | 'by-dept'>('by-role');
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState<AddUserForm>(() => ({
     ...EMPTY_FORM,
@@ -283,6 +284,30 @@ export default function UserManagementPage() {
         </div>
       )}
 
+      {/* View Mode Tabs: All / By Role / By Department */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1 p-1 bg-bg rounded-lg w-fit border border-border">
+          {([
+            { id: 'by-role', label: 'By Role', icon: Shield },
+            { id: 'by-dept', label: 'By Department', icon: Building2 },
+            { id: 'all',     label: 'All Users', icon: Users },
+          ] as const).map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setViewMode(id)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === id ? 'bg-surface shadow text-text' : 'text-text-muted hover:text-text'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" /> {label}
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-text-muted tabular-nums">
+          Showing {filtered.length} of {users.length} users
+        </span>
+      </div>
+
       {/* Filters */}
       <div className="card px-4 py-3 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -296,70 +321,130 @@ export default function UserManagementPage() {
           </select>
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
         </div>
-        <div className="relative">
-          <select className="input w-auto appearance-none pr-8 text-sm" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
-            <option value="">All Depts</option>
-            {depts.map(d => <option key={d.id} value={d.code}>{d.code}</option>)}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-        </div>
+        {!isHod && (
+          <div className="relative">
+            <select className="input w-auto appearance-none pr-8 text-sm" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
+              <option value="">All Depts</option>
+              <option value="ALL">ALL</option>
+              {depts.map(d => <option key={d.id} value={d.code}>{d.code}</option>)}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+          </div>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="card overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm min-w-[700px]">
-          <thead className="bg-bg border-b border-border">
-            <tr>
-              {['Name / ID','Email','Role','Dept','Roll No.','Status','Last Sign-in','Actions'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs text-text-muted font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-10 text-center text-text-muted text-sm">No users found. Click "Add User" to get started.</td></tr>
-            )}
-            {filtered.map(u => (
-              <tr key={u.uid} className="border-b border-border hover:bg-bg">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                      {u.name.charAt(0)}
+      {/* Categorized or Flat User Tables */}
+      {(() => {
+        const renderTable = (list: User[]) => (
+          <div className="card overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead className="bg-bg border-b border-border">
+                <tr>
+                  {['Name / ID','Email','Role','Dept','Roll No.','Status','Last Sign-in','Actions'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs text-text-muted font-medium">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {list.length === 0 && (
+                  <tr><td colSpan={8} className="px-4 py-10 text-center text-text-muted text-sm">No users found. Click "Add User" to get started.</td></tr>
+                )}
+                {list.map(u => (
+                  <tr key={u.uid} className="border-b border-border hover:bg-bg">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-navy flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                          {u.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-text">{u.name}</p>
+                          <p className="text-[10px] font-mono text-text-muted">{u.uid}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-text-muted">{u.email}</td>
+                    <td className="px-4 py-3">
+                      <span className={
+                        (u.role as string) === 'ultra_admin' ? 'badge bg-navy text-text-on-navy' :
+                        u.role === 'super_admin' ? 'badge bg-primary-soft text-primary-hover' :
+                        u.role === 'dept_admin'  ? 'badge-info' :
+                        u.role === 'faculty'     ? 'badge-success' :
+                        'badge-neutral'
+                      }>
+                        {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'H.O.D' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-text-muted">{u.department}</td>
+                    <td className="px-4 py-3 text-text-muted font-mono text-xs">{(u as any).roll_no || '—'}</td>
+                    <td className="px-4 py-3"><StatusBadge variant={statusVariant[u.status] ?? 'neutral'} label={u.status} /></td>
+                    <td className="px-4 py-3 text-xs text-text-muted">{formatRelative(u.last_active_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setEditUser({...u})} className="p-1.5 rounded hover:bg-bg text-text-muted" title="Edit"><Edit className="w-3.5 h-3.5" /></button>
+                        <button className="p-1.5 rounded hover:bg-bg text-text-muted" title="Permissions"><Shield className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDelete(u.uid)} className="p-1.5 rounded hover:bg-danger-soft text-danger" title="Remove"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
+        if (viewMode === 'all') return renderTable(filtered);
+
+        if (viewMode === 'by-role') {
+          const roleOrder: { key: string; label: string }[] = [
+            { key: 'ultra_admin', label: 'Ultra Admin' },
+            { key: 'super_admin', label: 'Admin' },
+            { key: 'dept_admin',  label: 'H.O.D' },
+            { key: 'faculty',     label: 'Faculty' },
+            { key: 'student',     label: 'Student' },
+          ];
+          const nonEmpty = roleOrder.filter(r => filtered.some(u => u.role === r.key));
+          if (nonEmpty.length === 0) return renderTable([]);
+          return (
+            <div className="space-y-5">
+              {nonEmpty.map(r => {
+                const group = filtered.filter(u => u.role === r.key);
+                return (
+                  <div key={r.key} className="space-y-2">
+                    <div className="flex items-center gap-2 px-1">
+                      <h2 className="text-sm font-semibold text-text">{r.label}</h2>
+                      <span className="badge-neutral tabular-nums">{group.length}</span>
                     </div>
-                    <div>
-                      <p className="font-medium text-text">{u.name}</p>
-                      <p className="text-[10px] font-mono text-text-muted">{u.uid}</p>
-                    </div>
+                    {renderTable(group)}
                   </div>
-                </td>
-                <td className="px-4 py-3 text-text-muted">{u.email}</td>
-                <td className="px-4 py-3">
-                  <span className={
-                    (u.role as string) === 'ultra_admin' ? 'badge bg-navy text-text-on-navy' :
-                    u.role === 'super_admin' ? 'badge bg-primary-soft text-primary-hover' :
-                    u.role === 'dept_admin'  ? 'badge-info' :
-                    u.role === 'faculty'     ? 'badge-success' :
-                    'badge-neutral'
-                  }>
-                    {(u.role as string) === 'ultra_admin' ? 'Ultra Admin' : u.role === 'dept_admin' ? 'H.O.D' : u.role === 'super_admin' ? 'Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-text-muted">{u.department}</td>
-                <td className="px-4 py-3 text-text-muted font-mono text-xs">{(u as any).roll_no || '—'}</td>
-                <td className="px-4 py-3"><StatusBadge variant={statusVariant[u.status] ?? 'neutral'} label={u.status} /></td>
-                <td className="px-4 py-3 text-xs text-text-muted">{formatRelative(u.last_active_at)}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => setEditUser({...u})} className="p-1.5 rounded hover:bg-bg text-text-muted" title="Edit"><Edit className="w-3.5 h-3.5" /></button>
-                    <button className="p-1.5 rounded hover:bg-bg text-text-muted" title="Permissions"><Shield className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDelete(u.uid)} className="p-1.5 rounded hover:bg-danger-soft text-danger" title="Remove"><Trash2 className="w-3.5 h-3.5" /></button>
+                );
+              })}
+            </div>
+          );
+        }
+
+        // By Department
+        const deptGroups = Array.from(new Set(filtered.map(u => u.department || 'Unassigned')));
+        if (deptGroups.length === 0) return renderTable([]);
+        return (
+          <div className="space-y-5">
+            {deptGroups.map(code => {
+              const group = filtered.filter(u => (u.department || 'Unassigned') === code);
+              const deptName = depts.find(d => d.code === code)?.name;
+              return (
+                <div key={code} className="space-y-2">
+                  <div className="flex items-center gap-2 px-1">
+                    <h2 className="text-sm font-semibold text-text">
+                      {deptName ? `${deptName} (${code})` : code}
+                    </h2>
+                    <span className="badge-info tabular-nums">{group.length}</span>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  {renderTable(group)}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
