@@ -25,12 +25,9 @@ function adminNav(): NavGroup[] {
     { group: 'Identity', items: [
         { label: 'Users',         to: '/admin/users',       icon: Users },
         { label: 'Departments',   to: '/admin/departments', icon: Building2 },
-        { label: 'Roles',         to: '/admin/roles',       icon: Shield },
-        { label: 'Special Tags',  to: '/admin/tags',        icon: Tag },
     ]},
     { group: 'Content', items: [
-        { label: 'Documents',             to: '/admin/documents',   icon: Files },
-        { label: 'Assignments & Grading', to: '/admin/assignments', icon: Award },
+        { label: 'Documents',     to: '/admin/documents',   icon: Files },
     ]},
     { group: 'Access Control', items: [
         { label: 'Permissions',   to: '/admin/permissions', icon: KeyRound },
@@ -40,7 +37,6 @@ function adminNav(): NavGroup[] {
     { group: 'Security', items: [
         { label: 'Sessions',      to: '/admin/sessions',    icon: MonitorSmartphone },
         { label: 'Emergency',     to: '/admin/emergency',   icon: OctagonAlert },
-        { label: 'Monitoring',    to: '/admin/security',    icon: Activity },
         { label: 'Audit Logs',    to: '/admin/audit',       icon: History },
     ]},
   ];
@@ -52,7 +48,9 @@ function userNav(role: Role): NavGroup[] {
   if (role === 'student') {
     items.push({ label: 'My Assignments', to: '/assignments', icon: Upload });
   }
-  items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
+  if (role !== 'student') {
+    items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
+  }
   items.push({ label: 'Access Requests', to: '/requests', icon: Inbox });
   items.push({ label: 'Profile', to: '/profile', icon: User });
 
@@ -77,7 +75,6 @@ function userNav(role: Role): NavGroup[] {
         { label: 'Magic Links',           to: '/hod/magic-links',  icon: Link2 },
         { label: 'Approve Requests',      to: '/hod/requests',     icon: Inbox },
         { label: 'Assignments & Grading', to: '/faculty/grades',   icon: Award },
-        { label: 'Dept Activity',         to: '/department/activity', icon: Activity },
       ],
     });
   }
