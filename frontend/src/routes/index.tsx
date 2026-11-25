@@ -178,6 +178,7 @@ const router = createBrowserRouter([
       { path: '/faculty/grades',       element: <Suspense fallback={<Loading />}><RequireRole roles={['faculty', 'dept_admin']}><FacultyGradingPage /></RequireRole></Suspense> },
       { path: '/department/activity',  element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DeptActivityPage /></RequireRole></Suspense> },
       // H.O.D Department-Scoped Management Routes
+      { path: '/hod/users',            element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><UserManagementPage /></RequireRole></Suspense> },
       { path: '/hod/department',       element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DepartmentMgmtPage /></RequireRole></Suspense> },
       { path: '/hod/documents',        element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><DocumentMgmtPage /></RequireRole></Suspense> },
       { path: '/hod/permissions',      element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin']}><PermissionMgmtPage /></RequireRole></Suspense> },

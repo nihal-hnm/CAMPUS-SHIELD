@@ -1,5 +1,5 @@
 // User types
-export type Role = 'super_admin' | 'dept_admin' | 'faculty' | 'student' | 'financial_auditor';
+export type Role = 'ultra_admin' | 'super_admin' | 'dept_admin' | 'faculty' | 'student' | 'financial_auditor';
 export type UserStatus = 'active' | 'inactive' | 'exited' | 'graduated';
 
 export interface User {

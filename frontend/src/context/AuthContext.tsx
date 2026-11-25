@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { User } from '../types/user';
 import { login as apiLogin, logout as apiLogout, reauth as apiReauth, getMe, logoutTab, touchActivity } from '../services/apiClient';
-import {
-  generateSessionId, getCurrentSessionId, setCurrentSessionId,
-  clearSessionId, broadcastNewLogin, listenForSessionConflict
-} from '../services/sessionGuard';
+import { supabase } from '../services/supabaseClient';
+import { getCurrentSessionId, clearSessionId } from '../services/sessionGuard';
 
 interface AuthContextType {
   user: User | null;
@@ -25,13 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [signinTime, setSigninTime] = useState<number | null>(null);
   const [loggedInElsewhere, setLoggedInElsewhere] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const u = await getMe();
       setUser(u);
-    } catch {
+    } catch (err: any) {
+      if (err?.message === 'Logged in elsewhere') {
+        setLoggedInElsewhere(true);
+      }
       setUser(null);
     }
   }, []);
@@ -40,14 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  // Tab close beacon
   useEffect(() => {
     const handle = () => logoutTab();
     window.addEventListener('beforeunload', handle);
     return () => window.removeEventListener('beforeunload', handle);
   }, []);
 
-  // Track activity
   useEffect(() => {
     const events = ['mousemove', 'keypress', 'touchstart', 'click'];
     const handler = () => touchActivity();
@@ -55,22 +53,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => events.forEach(e => window.removeEventListener(e, handler));
   }, []);
 
-  // Single-device session guard
+  // Cross-device single-device session guard via Supabase
   useEffect(() => {
-    if (!user || !sessionId) return;
-    const unsubscribe = listenForSessionConflict(sessionId, () => {
-      setLoggedInElsewhere(true);
-      setUser(null);
-    });
-    return unsubscribe;
-  }, [user, sessionId]);
+    if (!user) return;
+    const localSid = getCurrentSessionId();
+    if (!localSid) return;
+
+    const checkSession = async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('active_session_id')
+        .eq('uid', user.uid)
+        .maybeSingle();
+
+      if (data?.active_session_id && data.active_session_id !== localSid) {
+        clearSessionId();
+        setLoggedInElsewhere(true);
+        setUser(null);
+      }
+    };
+
+    const interval = setInterval(checkSession, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const login = useCallback(async (email: string, password: string) => {
     const u = await apiLogin(email, password);
-    const sid = generateSessionId();
-    setCurrentSessionId(sid);
-    broadcastNewLogin(sid); // kick any other active sessions
-    setSessionId(sid);
     setUser(u);
     setSigninTime(Date.now());
     setLoggedInElsewhere(false);
@@ -78,10 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await apiLogout();
-    clearSessionId();
     setUser(null);
     setSigninTime(null);
-    setSessionId(null);
     setLoggedInElsewhere(false);
   }, []);
 

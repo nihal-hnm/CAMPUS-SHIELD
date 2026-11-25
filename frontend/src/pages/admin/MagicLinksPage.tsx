@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link2, Copy, Clock, Shield, Trash2, Plus, X, ChevronDown, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { MOCK_DOCUMENTS, MOCK_MAGIC_LINKS, type MagicLink } from '../../mocks/data';
+import { MOCK_DOCUMENTS, MOCK_MAGIC_LINKS, saveMagicLinks, type MagicLink } from '../../mocks/data';
 import { useAuth } from '../../context/AuthContext';
 
 function genToken() {
@@ -41,6 +41,7 @@ export default function MagicLinksPage() {
       accessed: false,
     };
     MOCK_MAGIC_LINKS.unshift(link);
+    saveMagicLinks();
     setLinks([...MOCK_MAGIC_LINKS]);
     setForm({ document_id: '', expires_minutes: 60 });
     setShowCreate(false);

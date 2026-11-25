@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Shield, Users, GraduationCap, BookOpen, Edit, X, ChevronDown, Search } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers } from '../../mocks/data';
+import { syncAllFromSupabase } from '../../services/dbSync';
 import type { User } from '../../types/user';
 
 type TabKey = 'admins' | 'hods' | 'faculties';
@@ -27,6 +28,10 @@ export default function RoleManagementPage() {
   const [search, setSearch] = useState('');
   const [editUser, setEditUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState('');
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => setUsers([...MOCK_USERS]));
+  }, []);
 
   const currentTab = TABS.find(t => t.key === tab)!;
 

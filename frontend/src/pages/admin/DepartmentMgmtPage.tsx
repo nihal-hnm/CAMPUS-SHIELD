@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Building2, Users, BookOpen, Search, Plus, Edit, ChevronDown, ChevronUp,
   X, GraduationCap, UserCheck, Hash, Trash2
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { MOCK_DEPARTMENTS, MOCK_USERS, saveDepartments, type Department, type Student } from '../../mocks/data';
+import { MOCK_DEPARTMENTS, MOCK_USERS, saveDepartments, saveUsers, type Department, type Student } from '../../mocks/data';
+import { syncAllFromSupabase, createDbUser } from '../../services/dbSync';
 import { useAuth } from '../../context/AuthContext';
 
 type DeptTab = 'subjects' | 'students' | 'faculty';
@@ -38,7 +39,9 @@ export default function DepartmentMgmtPage() {
     return map;
   });
   const [showAddStudent, setShowAddStudent] = useState<string | null>(null);
-  const [newStudent, setNewStudent] = useState({ name: '', email: '', roll_no: '', year: 1 });
+  const [newStudent, setNewStudent] = useState({ name: '', email: '', password: '', roll_no: '', year: 1 });
+  const [studentErr, setStudentErr] = useState('');
+  const [savingStudent, setSavingStudent] = useState(false);
 
   // Faculty assignment
   const [showAssignFaculty, setShowAssignFaculty] = useState<string | null>(null);
@@ -48,6 +51,15 @@ export default function DepartmentMgmtPage() {
   // HOD assignment
   const [showAssignHod, setShowAssignHod] = useState<string | null>(null);
   const [assignHodUid, setAssignHodUid] = useState('');
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => {
+      setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
+      const map: Record<string, Student[]> = {};
+      MOCK_DEPARTMENTS.forEach(d => { map[d.id] = d.students || []; });
+      setStudents(map);
+    });
+  }, []);
 
   const filtered = useMemo(() => departments.filter(d => {
     if (isHod && d.code !== hodDept) return false;
@@ -70,13 +82,40 @@ export default function DepartmentMgmtPage() {
     setShowAdd(false);
   }
 
-  function addStudent(deptId: string, deptCode: string) {
-    if (!newStudent.name || !newStudent.email) return;
+  async function addStudent(deptId: string, deptCode: string) {
+    setStudentErr('');
+    if (!newStudent.name || !newStudent.email || !newStudent.password) {
+      setStudentErr('Name, email, and password (min 4 chars) are required.');
+      return;
+    }
     const existing = students[deptId] || [];
     const roll = newStudent.roll_no || genRoll(deptCode, existing);
+    setSavingStudent(true);
+    const { user: created, error } = await createDbUser(newStudent.email, newStudent.password, {
+      email: newStudent.email.trim().toLowerCase(),
+      name: newStudent.name.trim(),
+      role: 'student',
+      department: deptCode,
+      assigned_subjects: [],
+      special_tags: [],
+      status: 'active',
+      last_active_at: new Date().toISOString(),
+      last_reauth_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      roll_no: roll,
+    });
+    setSavingStudent(false);
+
+    if (error || !created) {
+      setStudentErr(error || 'Failed to save student to database.');
+      return;
+    }
+
+    MOCK_USERS.push(created);
+    saveUsers();
+
     const s: Student = {
-      uid: `stu_${Math.random().toString(36).substring(2,8)}`,
-      name: newStudent.name, email: newStudent.email,
+      uid: created.uid, name: created.name, email: created.email,
       roll_no: roll, year: newStudent.year, status: 'active',
     };
     const nextList = [...existing, s];
@@ -89,7 +128,7 @@ export default function DepartmentMgmtPage() {
       saveDepartments();
     }
     setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
-    setNewStudent({ name:'', email:'', roll_no:'', year:1 });
+    setNewStudent({ name:'', email:'', password:'', roll_no:'', year:1 });
     setShowAddStudent(null);
   }
 
@@ -104,6 +143,10 @@ export default function DepartmentMgmtPage() {
         dObj.faculty_count = dObj.faculties.length;
         saveDepartments();
       }
+      if (assignSubject && !user.assigned_subjects.includes(assignSubject)) {
+        user.assigned_subjects = [...user.assigned_subjects, assignSubject];
+        saveUsers();
+      }
     }
     setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setAssignFacultyUid(''); setAssignSubject(''); setShowAssignFaculty(null);
@@ -117,6 +160,10 @@ export default function DepartmentMgmtPage() {
       dObj.hod_id = user.uid;
       dObj.hod_name = user.name;
       saveDepartments();
+      user.role = 'dept_admin';
+      user.department = dObj.code;
+      user.special_tags = ['HOD'];
+      saveUsers();
     }
     setDepartments([...MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL')]);
     setAssignHodUid(''); setShowAssignHod(null);
@@ -310,22 +357,24 @@ export default function DepartmentMgmtPage() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-medium text-text-muted">Students ({deptStudents.length})</p>
-                          <button onClick={() => { setShowAddStudent(dept.id); setNewStudent({name:'',email:'',roll_no:'',year:1}); }}
+                          <button onClick={() => { setShowAddStudent(dept.id); setStudentErr(''); setNewStudent({name:'',email:'',password:'',roll_no:'',year:1}); }}
                             className="text-xs text-primary flex items-center gap-1 hover:underline">
                             <Plus className="w-3 h-3" /> Add Student
                           </button>
                         </div>
 
                         {showAddStudent === dept.id && (
-                          <div className="p-3 rounded bg-surface border border-border grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div className="p-3 rounded bg-surface border border-border grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            {studentErr && <div className="col-span-2 sm:col-span-5 p-2 rounded bg-danger-soft text-danger-dark text-xs">{studentErr}</div>}
                             <input className="input text-xs col-span-2 sm:col-span-1" placeholder="Full name *" value={newStudent.name} onChange={e => setNewStudent(v => ({...v, name: e.target.value}))} />
-                            <input className="input text-xs col-span-2 sm:col-span-1" placeholder="Email *" value={newStudent.email} onChange={e => setNewStudent(v => ({...v, email: e.target.value}))} />
+                            <input className="input text-xs col-span-2 sm:col-span-1" type="email" placeholder="Email *" value={newStudent.email} onChange={e => setNewStudent(v => ({...v, email: e.target.value}))} />
+                            <input className="input text-xs col-span-2 sm:col-span-1" type="password" placeholder="Password *" value={newStudent.password} onChange={e => setNewStudent(v => ({...v, password: e.target.value}))} />
                             <input className="input text-xs" placeholder={`Roll (auto: ${genRoll(dept.code, deptStudents)})`} value={newStudent.roll_no} onChange={e => setNewStudent(v => ({...v, roll_no: e.target.value}))} />
                             <select className="input text-xs" value={newStudent.year} onChange={e => setNewStudent(v => ({...v, year: Number(e.target.value)}))}>
                               {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
                             </select>
-                            <div className="col-span-2 sm:col-span-4 flex gap-2">
-                              <Button variant="primary" size="sm" onClick={() => addStudent(dept.id, dept.code)} disabled={!newStudent.name || !newStudent.email}>Add</Button>
+                            <div className="col-span-2 sm:col-span-5 flex gap-2">
+                              <Button variant="primary" size="sm" onClick={() => addStudent(dept.id, dept.code)} loading={savingStudent} disabled={!newStudent.name || !newStudent.email || !newStudent.password}>Add</Button>
                               <Button variant="secondary" size="sm" onClick={() => setShowAddStudent(null)}>Cancel</Button>
                             </div>
                           </div>

@@ -1,6 +1,7 @@
 import type { Role } from '../types/user';
 
 export const ROLES: Record<Role, string> = {
+  ultra_admin:       'Ultra Admin',
   super_admin:       'Super Admin',
   dept_admin:        'Department Admin (HOD)',
   faculty:           'Faculty',
@@ -9,6 +10,7 @@ export const ROLES: Record<Role, string> = {
 };
 
 export const ROLE_DISPLAY: Record<Role, string> = {
+  ultra_admin:       'Ultra Admin',
   super_admin:       'Admin',
   dept_admin:        'HOD',
   faculty:           'Faculty',
@@ -16,11 +18,11 @@ export const ROLE_DISPLAY: Record<Role, string> = {
   financial_auditor: 'Auditor',
 };
 
-export const ADMIN_ROLES: Role[] = ['super_admin'];
+export const ADMIN_ROLES: Role[] = ['ultra_admin', 'super_admin'];
 export const HOD_ROLES: Role[]   = ['dept_admin'];
 
 export function isAdmin(role: Role): boolean {
-  return role === 'super_admin';
+  return role === 'ultra_admin' || role === 'super_admin';
 }
 export function isHOD(role: Role): boolean {
   return role === 'dept_admin';

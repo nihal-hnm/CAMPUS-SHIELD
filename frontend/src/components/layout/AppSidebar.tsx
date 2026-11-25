@@ -69,6 +69,7 @@ function userNav(role: Role): NavGroup[] {
     groups.push({
       group: 'H.O.D Controls',
       items: [
+        { label: 'Dept Users',            to: '/hod/users',        icon: Users },
         { label: 'Dept & Students',       to: '/hod/department',   icon: Building2 },
         { label: 'Upload & Docs',         to: '/hod/documents',    icon: Files },
         { label: 'Grant Permissions',     to: '/hod/permissions',  icon: KeyRound },

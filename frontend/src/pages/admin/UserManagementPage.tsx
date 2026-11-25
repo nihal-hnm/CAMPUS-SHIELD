@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_USERS, MOCK_DEPARTMENTS, MOCK_CREDENTIALS, saveUsers, saveDepartments } from '../../mocks/data';
+import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers, saveDepartments } from '../../mocks/data';
+import { createDbUser, deleteDbUser, syncAllFromSupabase } from '../../services/dbSync';
+import { useAuth } from '../../context/AuthContext';
 import { formatRelative } from '../../utils/format';
 import type { User } from '../../types/user';
 
@@ -16,9 +18,6 @@ const ROLES: { value: Role; label: string }[] = [
   { value: 'ultra_admin', label: 'Ultra Admin' },
 ];
 
-function genId(role: string) {
-  return `usr_${role.substring(0,3)}_${Math.random().toString(36).substring(2,7)}`;
-}
 function genRollNo(deptCode: string, users: User[]) {
   const existing = users.filter(u => u.department === deptCode && u.role === 'student').length;
   const year = new Date().getFullYear().toString().substring(2);
@@ -34,22 +33,37 @@ interface AddUserForm {
 const EMPTY_FORM: AddUserForm = { name:'', email:'', password:'', role:'student', department:'', subject:'', roll_no:'' };
 
 export default function UserManagementPage() {
+  const { user: currentUser } = useAuth();
+  const isHod = currentUser?.role === 'dept_admin';
+  const hodDept = currentUser?.department;
+
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterDept, setFilterDept] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState<AddUserForm>(EMPTY_FORM);
+  const [form, setForm] = useState<AddUserForm>(() => ({
+    ...EMPTY_FORM,
+    department: isHod && hodDept ? hodDept : '',
+  }));
   const [editUser, setEditUser] = useState<User | null>(null);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => setUsers([...MOCK_USERS]));
+  }, []);
+
+  const allowedRoles = isHod ? ROLES.filter(r => r.value === 'student' || r.value === 'faculty') : ROLES;
 
   const filtered = useMemo(() => users.filter(u => {
+    if (isHod && hodDept && u.department !== hodDept) return false;
     const q = search.toLowerCase();
     const matchQ = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
     const matchRole = !filterRole || u.role === filterRole;
     const matchDept = !filterDept || u.department === filterDept;
     return matchQ && matchRole && matchDept;
-  }), [users, search, filterRole, filterDept]);
+  }), [users, search, filterRole, filterDept, isHod, hodDept]);
 
   const depts = MOCK_DEPARTMENTS.filter(d => d.code !== 'ALL');
 
@@ -57,20 +71,23 @@ export default function UserManagementPage() {
     active:'success', inactive:'neutral', exited:'danger', graduated:'neutral',
   };
 
-  function handleAdd() {
+  async function handleAdd() {
     setError('');
     if (!form.name || !form.email || !form.password || !form.role || !form.department) {
       setError('Please fill in all required fields.'); return;
     }
-    if (users.some(u => u.email === form.email)) {
+    if (form.password.length < 4) {
+      setError('Password must be at least 4 characters.'); return;
+    }
+    if (users.some(u => u.email.toLowerCase() === form.email.trim().toLowerCase())) {
       setError('A user with this email already exists.'); return;
     }
-    const uid = genId(form.role);
+
+    setSaving(true);
     const rollNo = form.role === 'student' ? (form.roll_no || genRollNo(form.department, users)) : '';
-    const newUser: User = {
-      uid,
-      email: form.email,
-      name: form.name,
+    const { user: createdUser, error: dbErr } = await createDbUser(form.email, form.password, {
+      email: form.email.trim().toLowerCase(),
+      name: form.name.trim(),
       role: form.role,
       department: form.department,
       assigned_subjects: form.subject ? [form.subject] : [],
@@ -80,11 +97,15 @@ export default function UserManagementPage() {
       last_reauth_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
       roll_no: rollNo,
-    } as any;
-    // Store credential for demo login
-    MOCK_CREDENTIALS[form.email] = { password: form.password, uid };
-    // Update global mock array & persist
-    MOCK_USERS.push(newUser);
+    });
+    setSaving(false);
+
+    if (dbErr || !createdUser) {
+      setError(dbErr || 'Failed to save user to Supabase database.');
+      return;
+    }
+
+    MOCK_USERS.push(createdUser);
     saveUsers();
 
     // Sync with department
@@ -92,33 +113,31 @@ export default function UserManagementPage() {
     if (deptObj) {
       if (form.role === 'student') {
         deptObj.students = [...(deptObj.students || []), {
-          uid, name: form.name, email: form.email, roll_no: rollNo, year: 1, status: 'active'
+          uid: createdUser.uid, name: createdUser.name, email: createdUser.email, roll_no: rollNo, year: 1, status: 'active'
         }];
         deptObj.student_count = deptObj.students.length;
       } else if (form.role === 'faculty') {
         deptObj.faculties = [...(deptObj.faculties || []), {
-          uid, name: form.name, email: form.email, subject: form.subject || undefined, role: 'faculty'
+          uid: createdUser.uid, name: createdUser.name, email: createdUser.email, subject: form.subject || undefined, role: 'faculty'
         }];
         deptObj.faculty_count = deptObj.faculties.length;
       } else if (form.role === 'dept_admin') {
-        deptObj.hod_id = uid;
-        deptObj.hod_name = form.name;
+        deptObj.hod_id = createdUser.uid;
+        deptObj.hod_name = createdUser.name;
       }
       saveDepartments();
     }
 
     setUsers([...MOCK_USERS]);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, department: isHod && hodDept ? hodDept : '' });
     setShowAdd(false);
   }
 
   function handleDelete(uid: string) {
     const idx = MOCK_USERS.findIndex(u => u.uid === uid);
     if (idx > -1) {
-      const removed = MOCK_USERS[idx];
-      delete MOCK_CREDENTIALS[removed.email];
       MOCK_USERS.splice(idx, 1);
-      saveUsers();
+      void deleteDbUser(uid);
     }
     setUsers([...MOCK_USERS]);
   }
@@ -143,7 +162,7 @@ export default function UserManagementPage() {
           <h1 className="text-2xl font-semibold text-text">User Management</h1>
           <p className="text-sm text-text-muted mt-1">Add faculties, HODs and students. {users.length} accounts registered.</p>
         </div>
-        <Button variant="primary" size="sm" onClick={() => { setShowAdd(v => !v); setError(''); setForm(EMPTY_FORM); }}>
+        <Button variant="primary" size="sm" onClick={() => { setShowAdd(v => !v); setError(''); setForm({ ...EMPTY_FORM, department: isHod && hodDept ? hodDept : '' }); }}>
           <UserPlus className="w-4 h-4" /> Add User
         </Button>
       </div>
@@ -173,7 +192,7 @@ export default function UserManagementPage() {
               <label className="block text-xs font-medium text-text-muted mb-1">Role *</label>
               <div className="relative">
                 <select className="input w-full text-sm appearance-none pr-8" value={form.role} onChange={e => setForm(v => ({...v, role: e.target.value as Role, subject:'', roll_no:''}))}>
-                  {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  {allowedRoles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
               </div>
@@ -181,8 +200,8 @@ export default function UserManagementPage() {
             <div>
               <label className="block text-xs font-medium text-text-muted mb-1">Department *</label>
               <div className="relative">
-                <select className="input w-full text-sm appearance-none pr-8" value={form.department} onChange={e => setForm(v => ({...v, department: e.target.value, subject:''}))}>
-                  <option value="">Select department…</option>
+                <select className="input w-full text-sm appearance-none pr-8" value={form.department} onChange={e => setForm(v => ({...v, department: e.target.value, subject:''}))} disabled={isHod}>
+                  {!isHod && <option value="">Select department…</option>}
                   {depts.map(d => <option key={d.id} value={d.code}>{d.name}</option>)}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
@@ -209,7 +228,7 @@ export default function UserManagementPage() {
           </div>
           <div className="flex gap-3 mt-4">
             <Button variant="secondary" size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
-            <Button variant="primary" size="sm" onClick={handleAdd}>Create User</Button>
+            <Button variant="primary" size="sm" onClick={handleAdd} loading={saving}>Create User</Button>
           </div>
         </div>
       )}

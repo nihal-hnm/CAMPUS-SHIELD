@@ -22,15 +22,16 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) { setEmailErr('Email or ID is required'); return; }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) { setEmailErr('Email or ID is required'); return; }
     setEmailErr(''); setError(''); setLoading(true);
     try {
-      await login(email, password);
+      await login(cleanEmail, password);
       const target = returnUrl.startsWith('/documents/') ? returnUrl : '/';
       navigate(target, { replace: true });
     } catch (err: any) {
-      const code = err?.reason_code ?? 'INVALID_CREDENTIALS';
-      setError(LOGIN_FAILURE_REASONS[code] ?? err?.message ?? 'Sign in failed. Try again.');
+      const code = err?.reason_code;
+      setError(err?.message || (code && LOGIN_FAILURE_REASONS[code]) || 'Sign in failed. Try again.');
       setPassword('');
     } finally {
       setLoading(false);

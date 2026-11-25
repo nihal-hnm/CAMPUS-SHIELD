@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { StatusBadge, ClassificationBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/feedback/States';
 import { MOCK_USERS, MOCK_DOCUMENTS, MOCK_PERMISSIONS, savePermissions } from '../../mocks/data';
+import { deletePermissionFromSupabase } from '../../services/dbSync';
 import { useAuth } from '../../context/AuthContext';
 import type { Permission, PermissionLevel } from '../../types/permission';
 import { formatDate, formatCountdown } from '../../utils/format';
@@ -191,7 +192,7 @@ export default function PermissionMgmtPage() {
     const idx = MOCK_PERMISSIONS.findIndex(p => p.id === id);
     if (idx > -1) {
       MOCK_PERMISSIONS.splice(idx, 1);
-      savePermissions();
+      void deletePermissionFromSupabase(id);
     }
     setPermissions([...MOCK_PERMISSIONS]);
   }
