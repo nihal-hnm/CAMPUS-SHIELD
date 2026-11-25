@@ -124,21 +124,7 @@ export default function AdminDashboardPage() {
                 <Users className="w-4 h-4 text-text-muted" /> Review Requests
                 {pendingReqs > 0 && <span className="ml-auto text-[10px] font-semibold bg-warning text-white rounded-full px-1.5 py-0.5">{pendingReqs}</span>}
               </Link>
-              <Link to="/admin/simulator" className="flex items-center gap-2 p-2.5 rounded hover:bg-bg text-sm text-text transition-colors">
-                <Activity className="w-4 h-4 text-text-muted" /> Permission Simulator
-              </Link>
             </div>
-          </div>
-
-          {/* Denied requests breakdown */}
-          <div className="card p-5">
-            <h2 className="text-sm font-semibold text-text mb-3">Top Denial Reasons (24h)</h2>
-            {['SUBJECT_MISMATCH', 'TAG_SCOPE', 'ROLE_UNAUTHORIZED'].map((code, i) => (
-              <div key={code} className="flex items-center justify-between py-1.5 text-xs">
-                <span className="font-mono text-text-muted">{code}</span>
-                <span className="font-semibold text-danger">{[2, 1, 1][i]}</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
