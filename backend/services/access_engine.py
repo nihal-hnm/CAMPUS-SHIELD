@@ -334,14 +334,14 @@ async def run_access_engine(
 
     try:
         # Steps 1-5: identity & link validation
-        for step in [
-            _step1_verify_token(ctx, supabase),
-            _step2_fetch_user(ctx, supabase),
-            _step3_fetch_document(ctx, supabase),
-            _step4_check_revocations(ctx, supabase),
-            _step5_validate_link_ttl(ctx, supabase),
-        ]:
-            denial = await step
+        for step_fn in (
+            _step1_verify_token,
+            _step2_fetch_user,
+            _step3_fetch_document,
+            _step4_check_revocations,
+            _step5_validate_link_ttl,
+        ):
+            denial = await step_fn(ctx, supabase)
             if denial:
                 await _step9_write_audit(ctx, denial, supabase)
                 return denial
