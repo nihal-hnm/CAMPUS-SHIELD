@@ -40,9 +40,9 @@ export default function UserDashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Accessible Documents" value={MOCK_DOCUMENTS.length} icon={FileText} to="/library" />
-        <StatCard label="Active Permissions"   value={MOCK_PERMISSIONS.length} icon={KeyRound} to="/permissions" />
+        <StatCard label="Active Permissions"   value={MOCK_PERMISSIONS.length} icon={KeyRound} />
         <StatCard label="Pending Requests"     value={pendingReqs.length} icon={Inbox} to="/requests" />
-        <StatCard label="Expiring in 24h"      value={expiring.length} sub="permissions" icon={AlertTriangle} to="/permissions" />
+        <StatCard label="Expiring in 24h"      value={expiring.length} sub="permissions" icon={AlertTriangle} />
       </div>
 
       {/* Faculty subjects */}

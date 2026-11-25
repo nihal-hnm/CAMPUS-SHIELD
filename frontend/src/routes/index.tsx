@@ -59,7 +59,6 @@ import LoggedInElsewherePage from '../pages/auth/LoggedInElsewherePage';
 const UserDashboardPage     = lazyWithRetry(() => import('../pages/user/DashboardPage'));
 const DocumentLibraryPage   = lazyWithRetry(() => import('../pages/user/LibraryPage'));
 const DocumentViewerPage    = lazyWithRetry(() => import('../pages/user/ViewerPage'));
-const MyPermissionsPage     = lazyWithRetry(() => import('../pages/user/PermissionsPage'));
 const AccessRequestsPage    = lazyWithRetry(() => import('../pages/user/RequestsPage'));
 const NotificationsPage     = lazyWithRetry(() => import('../pages/user/NotificationsPage'));
 const ProfilePage           = lazyWithRetry(() => import('../pages/user/ProfilePage'));
@@ -169,7 +168,6 @@ const router = createBrowserRouter([
       { path: '/dashboard',            element: <Suspense fallback={<Loading />}><UserDashboardPage /></Suspense> },
       { path: '/library',              element: <Suspense fallback={<Loading />}><DocumentLibraryPage /></Suspense> },
       { path: '/documents/:id',        element: <Suspense fallback={<Loading />}><DocumentViewerPage /></Suspense> },
-      { path: '/permissions',          element: <Suspense fallback={<Loading />}><RequireRole roles={['dept_admin', 'faculty', 'financial_auditor', 'super_admin', 'ultra_admin']}><MyPermissionsPage /></RequireRole></Suspense> },
       { path: '/requests',             element: <Suspense fallback={<Loading />}><AccessRequestsPage /></Suspense> },
       { path: '/notifications',        element: <Suspense fallback={<Loading />}><NotificationsPage /></Suspense> },
       { path: '/profile',              element: <Suspense fallback={<Loading />}><ProfilePage /></Suspense> },

@@ -48,9 +48,6 @@ function userNav(role: Role): NavGroup[] {
   if (role === 'student') {
     items.push({ label: 'My Assignments', to: '/assignments', icon: Upload });
   }
-  if (role !== 'student') {
-    items.push({ label: 'My Permissions', to: '/permissions', icon: KeyRound });
-  }
   items.push({ label: 'Access Requests', to: '/requests', icon: Inbox });
   items.push({ label: 'Profile', to: '/profile', icon: User });
 
