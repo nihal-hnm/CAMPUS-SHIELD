@@ -5,9 +5,9 @@ Thank you to everyone who has helped build CampusShield, a zero-trust campus doc
 Core Team
 Name	Role	GitHub	Contributions
 Arjun Singha / Full-Stack	@parckf	Architecture, backend, project management
-Munkund Kumar Soni	/ Frontend	@muku7848	UI/UX, dashboard, client-side logic
-Teammate 3	Backend / Security	@username	Auth, document verification, access control
-Teammate 4	AI / ML	@username	Academic integrity checks, similarity detection
+Mukund Kumar Soni	/ Frontend	@muku7848	UI/UX, dashboard, client-side logic
+Nihal Mahore / Backend / Security	@nihal-hnm	Auth, document verification, access control
+Chetan Pandey /Presenter/PPT Maker/ @mkpalld2008-cp
 
 Acknowledgements
 NexHack 2.0 organizers, for the problem statement and the opportunity
