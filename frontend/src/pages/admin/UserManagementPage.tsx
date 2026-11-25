@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown, Users, Building2 } from 'lucide-react';
+import { Search, UserPlus, Edit, Shield, Trash2, X, ChevronDown, Users, Building2, ArrowLeft, ChevronRight } from 'lucide-react';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_USERS, MOCK_DEPARTMENTS, saveUsers, saveDepartments } from '../../mocks/data';
@@ -41,7 +41,10 @@ export default function UserManagementPage() {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterDept, setFilterDept] = useState('');
-  const [viewMode, setViewMode] = useState<'all' | 'by-role' | 'by-dept'>('by-role');
+  const [viewMode, setViewMode] = useState<'all' | 'by-role' | 'by-dept'>('by-dept');
+  const [selectedDeptCode, setSelectedDeptCode] = useState<string | null>(
+    isHod && hodDept ? hodDept : null
+  );
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState<AddUserForm>(() => ({
     ...EMPTY_FORM,
@@ -284,17 +287,17 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      {/* View Mode Tabs: All / By Role / By Department */}
+      {/* View Mode Tabs: By Department / By Role / All Users */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-1 p-1 bg-bg rounded-lg w-fit border border-border">
           {([
-            { id: 'by-role', label: 'By Role', icon: Shield },
             { id: 'by-dept', label: 'By Department', icon: Building2 },
+            { id: 'by-role', label: 'By Role', icon: Shield },
             { id: 'all',     label: 'All Users', icon: Users },
           ] as const).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setViewMode(id)}
+              onClick={() => { setViewMode(id); if (id !== 'by-dept') setSelectedDeptCode(null); }}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 viewMode === id ? 'bg-surface shadow text-text' : 'text-text-muted hover:text-text'
               }`}
@@ -392,22 +395,27 @@ export default function UserManagementPage() {
           </div>
         );
 
-        if (viewMode === 'all') return renderTable(filtered);
+        const roleOrder: { key: string; label: string }[] = [
+          { key: 'ultra_admin', label: 'Ultra Admin' },
+          { key: 'super_admin', label: 'Admin' },
+          { key: 'dept_admin',  label: 'H.O.D' },
+          { key: 'faculty',     label: 'Faculty' },
+          { key: 'student',     label: 'Student' },
+        ];
 
-        if (viewMode === 'by-role') {
-          const roleOrder: { key: string; label: string }[] = [
-            { key: 'ultra_admin', label: 'Ultra Admin' },
-            { key: 'super_admin', label: 'Admin' },
-            { key: 'dept_admin',  label: 'H.O.D' },
-            { key: 'faculty',     label: 'Faculty' },
-            { key: 'student',     label: 'Student' },
-          ];
-          const nonEmpty = roleOrder.filter(r => filtered.some(u => u.role === r.key));
-          if (nonEmpty.length === 0) return renderTable([]);
+        const renderRoleGroups = (list: User[], emptyMsg = 'No users found.') => {
+          const nonEmpty = roleOrder.filter(r => list.some(u => u.role === r.key));
+          if (nonEmpty.length === 0) {
+            return (
+              <div className="card p-10 text-center text-text-muted text-sm">
+                {emptyMsg}
+              </div>
+            );
+          }
           return (
             <div className="space-y-5">
               {nonEmpty.map(r => {
-                const group = filtered.filter(u => u.role === r.key);
+                const group = list.filter(u => u.role === r.key);
                 return (
                   <div key={r.key} className="space-y-2">
                     <div className="flex items-center gap-2 px-1">
@@ -420,26 +428,93 @@ export default function UserManagementPage() {
               })}
             </div>
           );
+        };
+
+        if (viewMode === 'all') return renderTable(filtered);
+
+        if (viewMode === 'by-role') return renderRoleGroups(filtered);
+
+        // By Department: Block Grid -> Click to open Dept -> Inside: Categorized by Role
+        if (selectedDeptCode) {
+          const deptUsers = filtered.filter(u => (u.department || 'ALL') === selectedDeptCode);
+          const deptMeta = depts.find(d => d.code === selectedDeptCode);
+          return (
+            <div className="space-y-4">
+              <div className="card p-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {!isHod && (
+                    <Button variant="secondary" size="sm" onClick={() => setSelectedDeptCode(null)}>
+                      <ArrowLeft className="w-4 h-4" /> All Departments
+                    </Button>
+                  )}
+                  <div>
+                    <h2 className="text-base font-semibold text-text">
+                      {deptMeta ? `${deptMeta.name} (${deptMeta.code})` : selectedDeptCode}
+                    </h2>
+                    <p className="text-xs text-text-muted tabular-nums">
+                      {deptUsers.length} user{deptUsers.length !== 1 ? 's' : ''} categorized by role
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setError('');
+                    setForm({ ...EMPTY_FORM, department: selectedDeptCode === 'ALL' ? '' : selectedDeptCode });
+                    setShowAdd(true);
+                  }}
+                >
+                  <UserPlus className="w-4 h-4" /> Add to {selectedDeptCode}
+                </Button>
+              </div>
+              {renderRoleGroups(deptUsers, `No users in ${selectedDeptCode} match your filters.`)}
+            </div>
+          );
         }
 
-        // By Department
-        const deptGroups = Array.from(new Set(filtered.map(u => u.department || 'Unassigned')));
-        if (deptGroups.length === 0) return renderTable([]);
+        const blockDepts: { code: string; name: string }[] = [
+          ...depts.map(d => ({ code: d.code, name: d.name })),
+          ...(filtered.some(u => u.department === 'ALL') ? [{ code: 'ALL', name: 'Administration' }] : []),
+        ];
+
         return (
-          <div className="space-y-5">
-            {deptGroups.map(code => {
-              const group = filtered.filter(u => (u.department || 'Unassigned') === code);
-              const deptName = depts.find(d => d.code === code)?.name;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {blockDepts.map(d => {
+              const deptUsers = filtered.filter(u => u.department === d.code);
+              const hodCount = deptUsers.filter(u => u.role === 'dept_admin').length;
+              const facCount = deptUsers.filter(u => u.role === 'faculty').length;
+              const stuCount = deptUsers.filter(u => u.role === 'student').length;
+              const admCount = deptUsers.filter(u => u.role === 'super_admin' || (u.role as string) === 'ultra_admin').length;
+
               return (
-                <div key={code} className="space-y-2">
-                  <div className="flex items-center gap-2 px-1">
-                    <h2 className="text-sm font-semibold text-text">
-                      {deptName ? `${deptName} (${code})` : code}
-                    </h2>
-                    <span className="badge-info tabular-nums">{group.length}</span>
+                <button
+                  key={d.code}
+                  type="button"
+                  onClick={() => setSelectedDeptCode(d.code)}
+                  className="card p-5 text-left hover:border-primary transition-colors flex flex-col justify-between gap-4 group"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded bg-primary-soft flex items-center justify-center flex-shrink-0">
+                        <Building2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-text text-sm">{d.name}</p>
+                        <p className="text-xs font-mono text-text-muted">{d.code}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors mt-1" />
                   </div>
-                  {renderTable(group)}
-                </div>
+
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+                    <span className="badge-neutral tabular-nums">{deptUsers.length} Total</span>
+                    {admCount > 0 && <span className="badge bg-primary-soft text-primary-hover tabular-nums">{admCount} Admin</span>}
+                    {hodCount > 0 && <span className="badge-info tabular-nums">{hodCount} H.O.D</span>}
+                    {facCount > 0 && <span className="badge-success tabular-nums">{facCount} Faculty</span>}
+                    {stuCount > 0 && <span className="badge-neutral tabular-nums">{stuCount} Student</span>}
+                  </div>
+                </button>
               );
             })}
           </div>
