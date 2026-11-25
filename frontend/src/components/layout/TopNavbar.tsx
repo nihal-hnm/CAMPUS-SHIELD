@@ -3,8 +3,9 @@ import { Bell, Search, ChevronRight, Menu, X, FileText, User } from 'lucide-reac
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
-import { MOCK_DOCUMENTS, MOCK_USERS } from '../../mocks/data';
+import { MOCK_DOCUMENTS, MOCK_USERS, MOCK_PERMISSIONS } from '../../mocks/data';
 import { formatRole } from '../../constants/roles';
+import { sameDepartment } from '../../utils/format';
 
 function useBreadcrumbs() {
   const { pathname } = useLocation();
@@ -48,11 +49,21 @@ export function TopNavbar() {
   }, [searchOpen]);
 
   const q = query.toLowerCase().trim();
+  const isAdmin = user?.role === 'super_admin' || (user?.role as string) === 'ultra_admin';
   const docResults = q.length > 1
-    ? MOCK_DOCUMENTS.filter(d => d.title.toLowerCase().includes(q) || d.department.toLowerCase().includes(q) || (d.subject_id ?? '').toLowerCase().includes(q)).slice(0, 5)
+    ? MOCK_DOCUMENTS.filter(d => {
+        if (!isAdmin) {
+          const hasPerm = MOCK_PERMISSIONS.some(p => p.user_id === user?.uid && p.resource_id === d.document_id && p.status === 'active');
+          if (!sameDepartment(d.department, user?.department) && !hasPerm) return false;
+        }
+        return d.title.toLowerCase().includes(q) || d.department.toLowerCase().includes(q) || (d.subject_id ?? '').toLowerCase().includes(q);
+      }).slice(0, 5)
     : [];
-  const userResults = q.length > 1
-    ? MOCK_USERS.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)).slice(0, 4)
+  const userResults = q.length > 1 && user?.role !== 'student'
+    ? MOCK_USERS.filter(u => {
+        if (!isAdmin && !sameDepartment(u.department, user?.department)) return false;
+        return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
+      }).slice(0, 4)
     : [];
 
   function handleDocClick(docId: string) {

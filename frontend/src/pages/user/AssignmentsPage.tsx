@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, Clock, Award, Plus, X, ChevronDown, ClipboardList, Calendar } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { StatusBadge } from '../../components/ui/StatusBadge';
@@ -7,12 +7,20 @@ import {
   MOCK_ASSIGNMENTS, MOCK_ASSIGNMENT_TASKS, MOCK_DEPARTMENTS,
   saveAssignments, type AssignmentSubmission, type AssignedTask
 } from '../../mocks/data';
-import { formatBytes, formatRelative } from '../../utils/format';
+import { syncAllFromSupabase } from '../../services/dbSync';
+import { formatBytes, formatRelative, sameDepartment } from '../../utils/format';
 
 export default function AssignmentsPage() {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>(MOCK_ASSIGNMENTS);
-  const [tasks] = useState<AssignedTask[]>(MOCK_ASSIGNMENT_TASKS);
+  const [tasks, setTasks] = useState<AssignedTask[]>(MOCK_ASSIGNMENT_TASKS);
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => {
+      setTasks([...MOCK_ASSIGNMENT_TASKS]);
+      setSubmissions([...MOCK_ASSIGNMENTS]);
+    });
+  }, []);
 
   const [showUpload, setShowUpload] = useState(false);
   const [selectedTask, setSelectedTask] = useState<AssignedTask | null>(null);
@@ -22,11 +30,11 @@ export default function AssignmentsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState('');
 
-  const deptObj = MOCK_DEPARTMENTS.find(d => d.code === user?.department);
+  const deptObj = MOCK_DEPARTMENTS.find(d => sameDepartment(d.code, user?.department));
   const subjects = deptObj?.subjects ?? [];
 
   const deptTasks = useMemo(
-    () => tasks.filter(t => !user?.department || user.department === 'ALL' || t.department === user.department),
+    () => tasks.filter(t => sameDepartment(t.department, user?.department)),
     [tasks, user?.department]
   );
 

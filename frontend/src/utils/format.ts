@@ -35,3 +35,27 @@ export function formatBytes(bytes: number): string {
 export function cn(...classes: (string | undefined | false | null)[]): string {
   return classes.filter(Boolean).join(' ');
 }
+
+const DEPT_ALIASES: Record<string, string> = {
+  'cse': 'CSE', 'b.tech cse': 'CSE', 'btech cse': 'CSE',
+  'bph': 'BPH', 'b.pharmacy': 'BPH', 'bpharmacy': 'BPH', 'pharmacy': 'BPH',
+  'for': 'FOR', 'forensic': 'FOR', 'forensic science': 'FOR',
+  'hm': 'HM', 'hotel management': 'HM',
+  'agr': 'AGR', 'agriculture': 'AGR',
+  'bba': 'BBA',
+  'law': 'LAW',
+  'all': 'ALL',
+};
+
+export function normalizeDept(dept?: string | null): string {
+  if (!dept) return '';
+  const key = dept.trim().toLowerCase();
+  return DEPT_ALIASES[key] ?? dept.trim().toUpperCase();
+}
+
+export function sameDepartment(a?: string | null, b?: string | null): boolean {
+  const na = normalizeDept(a);
+  const nb = normalizeDept(b);
+  if (!na || !nb) return false;
+  return na === nb;
+}

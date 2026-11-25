@@ -5,7 +5,9 @@ import { ClassificationBadge, StatusBadge } from '../../components/ui/StatusBadg
 import { Button } from '../../components/ui/Button';
 import { EmptyState, ErrorState, LoadingState } from '../../components/feedback/States';
 import { listDocuments } from '../../services/apiClient';
-import { formatRelative } from '../../utils/format';
+import { useAuth } from '../../context/AuthContext';
+import { MOCK_PERMISSIONS } from '../../mocks/data';
+import { formatRelative, sameDepartment } from '../../utils/format';
 import type { Document } from '../../types/document';
 
 function DocumentRow({ doc }: { doc: Document }) {
@@ -57,6 +59,7 @@ function DocumentCard({ doc }: { doc: Document }) {
 }
 
 export default function LibraryPage() {
+  const { user } = useAuth();
   const [view, setView] = useState<'table' | 'grid'>('table');
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('');
@@ -79,7 +82,14 @@ export default function LibraryPage() {
 
   useEffect(() => { loadDocuments(); }, []);
 
+  const isAdminUser = user?.role === 'super_admin' || (user?.role as string) === 'ultra_admin';
   const filtered = documents.filter(d => {
+    if (!isAdminUser) {
+      const hasDirectPerm = MOCK_PERMISSIONS.some(p => p.user_id === user?.uid && p.resource_id === d.document_id && p.status === 'active');
+      const inOwnDept = sameDepartment(d.department, user?.department);
+      if (!inOwnDept && !hasDirectPerm) return false;
+      if (user?.role === 'student' && d.classification !== 'public' && !hasDirectPerm) return false;
+    }
     const matchSearch =
       !search ||
       d.title.toLowerCase().includes(search.toLowerCase()) ||

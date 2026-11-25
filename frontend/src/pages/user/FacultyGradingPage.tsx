@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Award, FileText, Search, CheckCircle, Clock, X, Download,
   Plus, ClipboardList, Trash2, Calendar, ChevronDown
@@ -11,7 +11,8 @@ import {
   saveAssignments, saveAssignmentTasks,
   type AssignmentSubmission, type AssignedTask
 } from '../../mocks/data';
-import { formatBytes, formatRelative } from '../../utils/format';
+import { syncAllFromSupabase } from '../../services/dbSync';
+import { formatBytes, formatRelative, sameDepartment } from '../../utils/format';
 
 const GRADE_PRESETS = ['A+', 'A', 'A-', 'B+', 'B', 'C+', 'C', 'D', 'F'];
 
@@ -20,6 +21,13 @@ export default function FacultyGradingPage() {
   const [tab, setTab] = useState<'tasks' | 'submissions'>('tasks');
   const [tasks, setTasks] = useState<AssignedTask[]>(MOCK_ASSIGNMENT_TASKS);
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>(MOCK_ASSIGNMENTS);
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => {
+      setTasks([...MOCK_ASSIGNMENT_TASKS]);
+      setSubmissions([...MOCK_ASSIGNMENTS]);
+    });
+  }, []);
 
   // Assign new task state
   const [showCreate, setShowCreate] = useState(false);
@@ -39,14 +47,14 @@ export default function FacultyGradingPage() {
 
   const isHod = user?.role === 'dept_admin';
   const assignedSubjects = user?.assigned_subjects ?? [];
-  const deptObj = MOCK_DEPARTMENTS.find(d => d.code === user?.department);
+  const deptObj = MOCK_DEPARTMENTS.find(d => sameDepartment(d.code, user?.department));
   const availableSubjects = !isHod && assignedSubjects.length > 0
     ? assignedSubjects
     : (deptObj?.subjects ?? []);
 
   const scopedTasks = useMemo(() => {
     return tasks.filter(t => {
-      if (user?.department && user.department !== 'ALL' && t.department !== user.department) return false;
+      if (!sameDepartment(t.department, user?.department)) return false;
       if (!isHod && assignedSubjects.length > 0 && !assignedSubjects.includes(t.subject)) return false;
       return true;
     });
@@ -54,7 +62,7 @@ export default function FacultyGradingPage() {
 
   const scoped = useMemo(() => {
     return submissions.filter(s => {
-      if (user?.department && user.department !== 'ALL' && s.department !== user.department) return false;
+      if (!sameDepartment(s.department, user?.department)) return false;
       if (!isHod && assignedSubjects.length > 0 && !assignedSubjects.includes(s.subject)) return false;
       return true;
     });

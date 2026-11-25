@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { EmptyState } from '../../components/feedback/States';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { MOCK_REQUESTS, MOCK_DOCUMENTS, saveRequests } from '../../mocks/data';
-import { formatRelative } from '../../utils/format';
+import { formatRelative, sameDepartment } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import type { AccessRequest } from '../../types/permission';
 import { useAuth } from '../../context/AuthContext';
@@ -80,7 +80,7 @@ export default function AccessRequestsPage() {
               <div className="relative">
                 <select className="input w-full text-sm appearance-none pr-8" value={form.resource_id} onChange={e => setForm(v => ({...v, resource_id: e.target.value}))}>
                   <option value="">Select document…</option>
-                  {MOCK_DOCUMENTS.map(d => <option key={d.document_id} value={d.document_id}>{d.title}</option>)}
+                  {MOCK_DOCUMENTS.filter(d => sameDepartment(d.department, user?.department)).map(d => <option key={d.document_id} value={d.document_id}>{d.title}</option>)}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
               </div>

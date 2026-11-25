@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ClassificationBadge } from '../../components/ui/StatusBadge';
 import { MOCK_DOCUMENTS, MOCK_PERMISSIONS, MOCK_REQUESTS } from '../../mocks/data';
-import { formatRelative, formatCountdown } from '../../utils/format';
+import { formatRelative, formatCountdown, sameDepartment } from '../../utils/format';
 import { formatRole } from '../../constants/roles';
 
 function StatCard({ label, value, sub, icon: Icon, to }: { label: string; value: number | string; sub?: string; icon: React.ComponentType<{ className?: string }>; to?: string }) {
@@ -25,9 +25,11 @@ function StatCard({ label, value, sub, icon: Icon, to }: { label: string; value:
 export default function UserDashboardPage() {
   const { user } = useAuth();
 
-  const recentDocs = MOCK_DOCUMENTS.slice(0, 5);
-  const expiring = MOCK_PERMISSIONS.filter(p => p.expires_at).slice(0, 3);
-  const pendingReqs = MOCK_REQUESTS.filter(r => r.status === 'pending');
+  const deptDocs = MOCK_DOCUMENTS.filter(d => sameDepartment(d.department, user?.department));
+  const recentDocs = deptDocs.slice(0, 5);
+  const myPerms = MOCK_PERMISSIONS.filter(p => p.user_id === user?.uid);
+  const expiring = myPerms.filter(p => p.expires_at).slice(0, 3);
+  const pendingReqs = MOCK_REQUESTS.filter(r => r.requester_id === user?.uid && r.status === 'pending');
 
   return (
     <div className="space-y-6">
@@ -39,8 +41,8 @@ export default function UserDashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Accessible Documents" value={MOCK_DOCUMENTS.length} icon={FileText} to="/library" />
-        <StatCard label="Active Permissions"   value={MOCK_PERMISSIONS.length} icon={KeyRound} />
+        <StatCard label="Accessible Documents" value={deptDocs.length} icon={FileText} to="/library" />
+        <StatCard label="Active Permissions"   value={myPerms.length} icon={KeyRound} />
         <StatCard label="Pending Requests"     value={pendingReqs.length} icon={Inbox} to="/requests" />
         <StatCard label="Expiring in 24h"      value={expiring.length} sub="permissions" icon={AlertTriangle} />
       </div>
