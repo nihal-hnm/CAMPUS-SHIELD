@@ -233,7 +233,7 @@ export default function DepartmentMgmtPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-text-muted mb-1">Subjects (comma-separated)</label>
-              <input className="input w-full text-sm" placeholder="CS-101, CS-201" value={newDept.subjects} onChange={e => setNewDept(v => ({...v, subjects: e.target.value}))} />
+              <input className="input w-full text-sm" placeholder="Python, Web Development, Maths" value={newDept.subjects} onChange={e => setNewDept(v => ({...v, subjects: e.target.value}))} />
             </div>
           </div>
           <div className="flex gap-3 mt-4">

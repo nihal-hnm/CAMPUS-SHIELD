@@ -37,11 +37,11 @@ export interface Student {
 export let MOCK_DEPARTMENTS: Department[] = [
   { id: 'dept_cse', name: 'B.Tech CSE',       code: 'CSE', subjects: ['Python','Web Development','Maths','Generative AI'], student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
   { id: 'dept_bph', name: 'B.Pharmacy',       code: 'BPH', subjects: ['Anatomy','Physiology','Chemistry'],                 student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_for', name: 'Forensic Science', code: 'FOR', subjects: ['FS-101','FS-201','FS-301'],                   student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_hm',  name: 'Hotel Management', code: 'HM',  subjects: ['HM-101','HM-201','HM-301'],                   student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_agr', name: 'Agriculture',      code: 'AGR', subjects: ['AG-101','AG-201','AG-301','AG-401'],          student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_bba', name: 'BBA',              code: 'BBA', subjects: ['BBA-101','BBA-201','BBA-301'],                student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
-  { id: 'dept_law', name: 'Law',              code: 'LAW', subjects: ['LAW-101','LAW-201','LAW-301','LAW-401'],      student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_for', name: 'Forensic Science', code: 'FOR', subjects: ['Forensic Biology','Crime Scene Investigation','Toxicology'], student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_hm',  name: 'Hotel Management', code: 'HM',  subjects: ['Food Production','Front Office','Housekeeping'],              student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_agr', name: 'Agriculture',      code: 'AGR', subjects: ['Agronomy','Soil Science','Horticulture','Plant Pathology'],     student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_bba', name: 'BBA',              code: 'BBA', subjects: ['Principles of Management','Marketing','Financial Accounting'],  student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
+  { id: 'dept_law', name: 'Law',              code: 'LAW', subjects: ['Constitutional Law','Criminal Law','Contract Law','Corporate Law'], student_count: 0, faculty_count: 0, status: 'active', faculties: [], students: [] },
 ];
 
 export const DEPT_NAMES = MOCK_DEPARTMENTS.map(d => d.code);

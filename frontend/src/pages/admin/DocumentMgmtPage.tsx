@@ -109,7 +109,7 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
         {/* Title */}
         <div>
           <label className="block text-xs font-medium text-text-muted mb-1">Document Title *</label>
-          <input className="input w-full text-sm" placeholder="e.g. CS-301 Mid-Term Paper 2025" value={title} onChange={e => { setTitle(e.target.value); setError(''); }} />
+          <input className="input w-full text-sm" placeholder="e.g. Python Mid-Term Paper 2025" value={title} onChange={e => { setTitle(e.target.value); setError(''); }} />
         </div>
 
         {/* Dept + Subject */}
@@ -169,7 +169,7 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
           <label className="block text-xs font-medium text-text-muted mb-1">Access Note (optional)</label>
           <textarea
             className="input w-full text-sm resize-none h-16"
-            placeholder="e.g. Only share with CS-301 faculty before exam date…"
+            placeholder="e.g. Only share with Python faculty before exam date…"
             value={accessNote}
             onChange={e => setAccessNote(e.target.value)}
           />

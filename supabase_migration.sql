@@ -66,15 +66,20 @@ INSERT INTO public.departments (id, name, code, subjects, student_count, faculty
 VALUES
   ('dept_cse', 'B.Tech CSE',       'CSE', ARRAY['Python','Web Development','Maths','Generative AI'], 0, 0, 'active', '[]', '[]'),
   ('dept_bph', 'B.Pharmacy',       'BPH', ARRAY['Anatomy','Physiology','Chemistry'],                 0, 0, 'active', '[]', '[]'),
-  ('dept_for', 'Forensic Science', 'FOR', '{FS-101,FS-201,FS-301}',               0, 0, 'active', '[]', '[]'),
-  ('dept_hm',  'Hotel Management', 'HM',  '{HM-101,HM-201,HM-301}',               0, 0, 'active', '[]', '[]'),
-  ('dept_agr', 'Agriculture',      'AGR', '{AG-101,AG-201,AG-301,AG-401}',        0, 0, 'active', '[]', '[]'),
-  ('dept_bba', 'BBA',              'BBA', '{BBA-101,BBA-201,BBA-301}',            0, 0, 'active', '[]', '[]'),
-  ('dept_law', 'Law',              'LAW', '{LAW-101,LAW-201,LAW-301,LAW-401}',    0, 0, 'active', '[]', '[]')
+  ('dept_for', 'Forensic Science', 'FOR', ARRAY['Forensic Biology','Crime Scene Investigation','Toxicology'], 0, 0, 'active', '[]', '[]'),
+  ('dept_hm',  'Hotel Management', 'HM',  ARRAY['Food Production','Front Office','Housekeeping'],              0, 0, 'active', '[]', '[]'),
+  ('dept_agr', 'Agriculture',      'AGR', ARRAY['Agronomy','Soil Science','Horticulture','Plant Pathology'],     0, 0, 'active', '[]', '[]'),
+  ('dept_bba', 'BBA',              'BBA', ARRAY['Principles of Management','Marketing','Financial Accounting'],  0, 0, 'active', '[]', '[]'),
+  ('dept_law', 'Law',              'LAW', ARRAY['Constitutional Law','Criminal Law','Contract Law','Corporate Law'], 0, 0, 'active', '[]', '[]')
 ON CONFLICT (id) DO NOTHING;
 
 UPDATE public.departments SET subjects = ARRAY['Python','Web Development','Maths','Generative AI'] WHERE id = 'dept_cse';
 UPDATE public.departments SET subjects = ARRAY['Anatomy','Physiology','Chemistry'] WHERE id = 'dept_bph';
+UPDATE public.departments SET subjects = ARRAY['Forensic Biology','Crime Scene Investigation','Toxicology'] WHERE id = 'dept_for';
+UPDATE public.departments SET subjects = ARRAY['Food Production','Front Office','Housekeeping'] WHERE id = 'dept_hm';
+UPDATE public.departments SET subjects = ARRAY['Agronomy','Soil Science','Horticulture','Plant Pathology'] WHERE id = 'dept_agr';
+UPDATE public.departments SET subjects = ARRAY['Principles of Management','Marketing','Financial Accounting'] WHERE id = 'dept_bba';
+UPDATE public.departments SET subjects = ARRAY['Constitutional Law','Criminal Law','Contract Law','Corporate Law'] WHERE id = 'dept_law';
 
 -- 4. Permissions table
 CREATE TABLE IF NOT EXISTS public.permissions (
