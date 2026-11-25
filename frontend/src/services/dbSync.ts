@@ -158,6 +158,10 @@ export async function deletePermissionFromSupabase(id: string): Promise<void> {
   await supabase.from('permissions').delete().eq('id', id);
 }
 
+export async function deleteDocumentFromSupabase(documentId: string): Promise<void> {
+  await supabase.from('documents').delete().eq('document_id', documentId);
+}
+
 export async function upsertRequestsToSupabase(reqs: AccessRequest[]): Promise<void> {
   if (!reqs.length) return;
   await supabase.from('access_requests').upsert(reqs, { onConflict: 'id' });

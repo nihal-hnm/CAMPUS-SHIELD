@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
-import { FileText, Upload, Search, Lock, Archive, X, ChevronDown, AlertCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { FileText, Upload, Search, Lock, Archive, Trash2, X, ChevronDown, AlertCircle } from 'lucide-react';
 import { ClassificationBadge, StatusBadge } from '../../components/ui/StatusBadge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_DOCUMENTS, MOCK_DEPARTMENTS, saveDocuments } from '../../mocks/data';
+import { deleteDocumentFromSupabase, syncAllFromSupabase } from '../../services/dbSync';
 import { useAuth } from '../../context/AuthContext';
 import { formatRelative, formatBytes } from '../../utils/format';
 import type { Document, Classification, DocumentCategory } from '../../types/document';
@@ -189,12 +190,17 @@ function UploadModal({ onClose, onUpload, fixedDept }: { onClose: () => void; on
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DocumentMgmtPage() {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'super_admin' || (user?.role as string) === 'ultra_admin';
   const isHod = user?.role === 'dept_admin';
   const isFaculty = user?.role === 'faculty';
   const scopedDept = (isHod || isFaculty) ? user?.department : undefined;
 
   const [documents, setDocuments] = useState<Document[]>(MOCK_DOCUMENTS);
   const [showUpload, setShowUpload] = useState(false);
+
+  useEffect(() => {
+    syncAllFromSupabase().then(() => setDocuments([...MOCK_DOCUMENTS]));
+  }, []);
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('');
   const [filterClass, setFilterClass] = useState('');
@@ -232,6 +238,16 @@ export default function DocumentMgmtPage() {
   function handleUpload(doc: Document) {
     MOCK_DOCUMENTS.unshift(doc);
     saveDocuments();
+    setDocuments([...MOCK_DOCUMENTS]);
+  }
+
+  function deleteDoc(id: string, title: string) {
+    if (!window.confirm(`Delete "${title}" permanently?`)) return;
+    const idx = MOCK_DOCUMENTS.findIndex(d => d.document_id === id);
+    if (idx > -1) {
+      MOCK_DOCUMENTS.splice(idx, 1);
+      void deleteDocumentFromSupabase(id);
+    }
     setDocuments([...MOCK_DOCUMENTS]);
   }
 
@@ -337,6 +353,16 @@ export default function DocumentMgmtPage() {
                     >
                       <Archive className="w-3.5 h-3.5" />
                     </button>
+                    {isAdmin && (
+                      <button
+                        className="p-1.5 rounded hover:bg-danger-soft text-danger"
+                        title="Delete document"
+                        aria-label={`Delete ${doc.title}`}
+                        onClick={() => deleteDoc(doc.document_id, doc.title)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
