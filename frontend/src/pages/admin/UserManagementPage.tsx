@@ -152,6 +152,22 @@ export default function UserManagementPage() {
     if (idx > -1) {
       MOCK_USERS[idx] = editUser;
       saveUsers();
+
+      // Sync faculty subject assignment into department faculties list
+      const deptObj = MOCK_DEPARTMENTS.find(d => d.code === editUser.department);
+      if (deptObj && editUser.role === 'faculty') {
+        const faculties = deptObj.faculties || [];
+        const fIdx = faculties.findIndex(f => f.uid === editUser.uid);
+        const subjStr = editUser.assigned_subjects?.join(', ') || undefined;
+        if (fIdx > -1) {
+          faculties[fIdx] = { ...faculties[fIdx], name: editUser.name, subject: subjStr };
+        } else {
+          faculties.push({ uid: editUser.uid, name: editUser.name, email: editUser.email, subject: subjStr, role: 'faculty' });
+        }
+        deptObj.faculties = faculties;
+        deptObj.faculty_count = faculties.length;
+        saveDepartments();
+      }
     }
     setUsers([...MOCK_USERS]);
     setEditUser(null);
@@ -254,7 +270,7 @@ export default function UserManagementPage() {
                 <label className="block text-xs font-medium text-text-muted mb-1">Role</label>
                 <div className="relative">
                   <select className="input w-full text-sm appearance-none pr-8" value={editUser.role} onChange={e => setEditUser(v => v && ({...v, role: e.target.value as any}))}>
-                    {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    {allowedRoles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                 </div>
@@ -262,12 +278,47 @@ export default function UserManagementPage() {
               <div>
                 <label className="block text-xs font-medium text-text-muted mb-1">Department</label>
                 <div className="relative">
-                  <select className="input w-full text-sm appearance-none pr-8" value={editUser.department} onChange={e => setEditUser(v => v && ({...v, department: e.target.value}))}>
+                  <select className="input w-full text-sm appearance-none pr-8" value={editUser.department} onChange={e => setEditUser(v => v && ({...v, department: e.target.value, assigned_subjects: []}))} disabled={isHod}>
                     {depts.map(d => <option key={d.id} value={d.code}>{d.name}</option>)}
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                 </div>
               </div>
+              {editUser.role === 'faculty' && (() => {
+                const editDeptObj = depts.find(d => d.code === editUser.department);
+                const availSubjects = editDeptObj?.subjects ?? [];
+                return (
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1.5">Assigned Subject(s)</label>
+                    {availSubjects.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {availSubjects.map(subj => {
+                          const active = (editUser.assigned_subjects ?? []).includes(subj);
+                          return (
+                            <button
+                              key={subj}
+                              type="button"
+                              onClick={() => setEditUser(v => {
+                                if (!v) return v;
+                                const curr = v.assigned_subjects ?? [];
+                                const next = active ? curr.filter(s => s !== subj) : [...curr, subj];
+                                return { ...v, assigned_subjects: next };
+                              })}
+                              className={`px-2.5 py-1 text-xs rounded border font-medium transition-colors ${
+                                active ? 'bg-primary text-white border-primary' : 'bg-bg border-border text-text hover:border-primary'
+                              }`}
+                            >
+                              {subj}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-text-muted italic">No subjects configured for {editUser.department}.</p>
+                    )}
+                  </div>
+                );
+              })()}
               <div>
                 <label className="block text-xs font-medium text-text-muted mb-1">Status</label>
                 <div className="relative">
